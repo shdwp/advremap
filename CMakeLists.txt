@@ -17,6 +17,7 @@ add_executable(${PROJECT_NAME}.elf
 	src/guilib/lib.c
 	src/ui/test_remap.c
 	src/ui/main_menu.c
+	src/ui/app_menu.c
 
 	src/remap/remap.c
 	src/remap/config.c

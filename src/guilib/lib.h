@@ -1,3 +1,6 @@
+#ifndef GUILIB_H
+#define GUILIB_H
+
 #include <stdbool.h>
 #include <psp2/ctrl.h>
 #include <psp2/touch.h>
@@ -13,7 +16,7 @@ struct menu_entry {
   int id;
   unsigned int color;
   char *name, *suffix;
-  char subname[1024];
+  char *subname;
   bool disabled, separator;
 };
 
@@ -59,3 +62,5 @@ void display_error(char *format, ...);
 void flash_message(char *format, ...);
 
 void guilib_init(gui_loop_callback global_loop_cb, gui_draw_callback global_draw_cb);
+
+#endif

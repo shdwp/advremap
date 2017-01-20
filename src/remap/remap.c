@@ -149,7 +149,7 @@ void cancel_stick(trigger_t trigger, SceCtrlData *mut_pad) {
 }
 
 // spawn
-static id = 0;
+static int id = 0;
 void spawn_touch(int x, int y, SceTouchData *mut_data) {
     if (mut_data->reportNum < 4) {
         struct SceTouchReport touch = {
@@ -166,18 +166,21 @@ void spawn_touch(int x, int y, SceTouchData *mut_data) {
 
 // config
 remap_config_t load_config() {
-    int size = 1;
+    int size = 2;
     trigger_t *triggers = malloc(sizeof(trigger_t) * size);
     action_list_t *actions = malloc(sizeof(action_list_t) * size);
 
-    /*
     triggers[0] = TOUCHSCREEN_NW;
-    triggers[2] = TOUCHSCREEN_NE;
 
-    actions[0] = alloc_single_action(make_button_action(SCE_CTRL_LTRIGGER));
-    actions[3] = alloc_single_action(make_button_action(SCE_CTRL_RTRIGGER));
-    */
-    triggers[0] = CTRL_CROSS;
+    action_t *nw_actions = malloc(sizeof(action_t) * 1);
+    nw_actions[0] = make_button_action(SCE_CTRL_LTRIGGER);
+    action_list_t one_actions_list = {
+        .size = 1,
+        .list = nw_actions
+    };
+    actions[0] = one_actions_list;
+
+    triggers[1] = CTRL_CROSS;
 
     action_t *cross_actions = malloc(sizeof(action_t) * 3);
     cross_actions[0] = make_button_action(SCE_CTRL_CIRCLE);
@@ -188,7 +191,7 @@ remap_config_t load_config() {
         .list = cross_actions,
     };
 
-    actions[0] = cross_actions_list;
+    actions[1] = cross_actions_list;
 
     remap_config_t config = {
         .size = size,
@@ -299,6 +302,57 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
                 }
 
             }
+        }
+    }
+}
+
+char *button_name(int id) {
+    char *trigger_name;
+    switch (id) {
+        case CTRL_SELECT: trigger_name = "SELECT"; break;
+        case CTRL_L3: trigger_name = ""; break;
+        case CTRL_R3: trigger_name = ""; break;
+        case CTRL_START: trigger_name = "START"; break;
+        case CTRL_UP: trigger_name = "UP"; break;
+        case CTRL_RIGHT: trigger_name = "RIGHT"; break;
+        case CTRL_DOWN: trigger_name = "DOWN"; break;
+        case CTRL_LEFT: trigger_name = "LEFT"; break;
+        case CTRL_LTRIGGER: trigger_name = "LTRIGGER"; break;
+        case CTRL_RTRIGGER: trigger_name = "RTRIGGER"; break;
+        case CTRL_L1: trigger_name = ""; break;
+        case CTRL_R1: trigger_name = ""; break;
+        case CTRL_TRIANGLE: trigger_name = "TRIANGLE"; break;
+        case CTRL_CIRCLE: trigger_name = "CIRCLE"; break;
+        case CTRL_CROSS: trigger_name = "CROSS"; break;
+        case CTRL_SQUARE: trigger_name = "SQUARE"; break;
+
+        case TOUCHSCREEN_NW: trigger_name = "TOUCH NW"; break;
+        case TOUCHSCREEN_NE: trigger_name = "TOUCH NE"; break;
+        case TOUCHSCREEN_SW: trigger_name = "TOUCH SW"; break;
+        case TOUCHSCREEN_SE: trigger_name = "TOUCH SE"; break;
+        case RS_UP: trigger_name = "RS UP"; break;
+        case RS_DOWN: trigger_name = "RS DOWN"; break;
+        case RS_LEFT: trigger_name = "RS LEFT"; break;
+        case RS_RIGHT: trigger_name = "RS RIGHT"; break;
+
+        case LS_UP: trigger_name = "LS UP"; break;
+        case LS_DOWN: trigger_name = "LS DOWN"; break;
+        case LS_LEFT: trigger_name = "LS LEFT"; break;
+        case LS_RIGHT: trigger_name = "LS RIGHT"; break;
+    }
+    return trigger_name;
+}
+
+void remap_config_action_name(remap_config_t config, int n, char *buf) {
+    char *trigger_name = button_name(config.triggers[n]);
+
+    sprintf(buf, "%s = ", trigger_name);
+    for (int i = 0; i < config.actions[n].size; i++) {
+        action_t action = config.actions[n].list[i];
+        switch (action.type) {
+            case ACTION_BUTTON:
+                sprintf(buf, "%s %s", buf, button_name(action.value));
+                break;
         }
     }
 }

@@ -75,8 +75,8 @@ typedef struct {
 
 //
 
-remap_config_t load_config();
 void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back);
+void remap_config_action_name(remap_config_t config, int i, char *buf);
 
 #include "config.h"
 

@@ -1,3 +1,4 @@
 #include "../guilib/lib.h"
+#include "app_menu.h"
 
-void main_menu();
+int ui_main_menu();

@@ -189,16 +189,14 @@ void draw_menu(struct menu_entry menu[], int total_elements, struct menu_geom ge
           );
     }
 
-    if (menu[i].name) {
-      vita2d_pgf_draw_text(
-          gui_font,
-          el_x + 2,
-          el_y + text_height,
-          color,
-          1.0f,
-          menu[i].name
-          );
-    }
+    vita2d_pgf_draw_text(
+        gui_font,
+        el_x + 2,
+        el_y + text_height,
+        color,
+        1.0f,
+        menu[i].name
+        );
 
     int right_x_offset = 20;
     if (menu[i].suffix) {

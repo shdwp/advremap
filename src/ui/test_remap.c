@@ -95,8 +95,6 @@ int ui_test_remap_back(void *context) {
 }
 
 int ui_test_remap() {
-  remap_config = load_config();
-
   sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
   sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
   sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
