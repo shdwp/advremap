@@ -3,6 +3,8 @@
 #define FREAD_INTO(into, stream) fread(&into, sizeof(into), 1, stream)
 #define FWRITE_FROM(from, stream) fwrite(&from, sizeof(from), 1, stream)
 
+#define CONFIG_VERSION 1
+
 void config_app_path(application_t app, char *path) {
     sprintf(path, "ux0:/data/advremap/%s", app.id);
 }
@@ -10,6 +12,12 @@ void config_app_path(application_t app, char *path) {
 int config_load(char *path, remap_config_t *result) {
     FILE *file = fopen(path, "r");
     if (!file) {
+        return -1;
+    }
+
+    int version = 0;
+    FREAD_INTO(version, file);
+    if (version != CONFIG_VERSION) {
         return -1;
     }
 
@@ -41,6 +49,8 @@ int config_load(char *path, remap_config_t *result) {
 int config_save(char *path, remap_config_t config) {
     FILE *file = fopen(path, "w");
 
+    int version = CONFIG_VERSION;
+    FWRITE_FROM(version, file);
     FWRITE_FROM(config.rs_deadzone, file);
     FWRITE_FROM(config.ls_deadzone, file);
     FWRITE_FROM(config.back_touch_deadzone_vertical, file);
@@ -67,4 +77,29 @@ int config_default(remap_config_t *config) {
     config->front_touch_deadzone_vertical = 0;
     config->front_touch_deadzone_horizontal = 0;
     config->size = 0;
+}
+
+void config_append_remap(remap_config_t *config) {
+    int i = config->size++;
+    config->triggers = realloc(config->triggers, sizeof(trigger_t) * config->size);
+    config->triggers[i] = CTRL_CROSS;
+
+    action_list_t list = {
+        .size = 0,
+        .list = 0,
+    };
+
+    config->actions = realloc(config->actions, sizeof(action_list_t) * config->size);
+    config->actions[i] = list;
+}
+
+void config_remove_remap(remap_config_t *config, int n) {
+    for (; n < config->size - 1; n++) {
+        config->actions[n] = config->actions[n+1];
+        config->triggers[n] = config->triggers[n+1];
+    }
+
+    config->size--;
+    config->triggers = realloc(config->triggers, sizeof(trigger_t) * config->size);
+    config->actions = realloc(config->actions, sizeof(action_list_t) * config->size);
 }

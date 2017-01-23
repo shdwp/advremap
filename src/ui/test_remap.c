@@ -1,7 +1,6 @@
 #include "test_remap.h"
 
 #include "../guilib/lib.h"
-#include "../remap/remap.h"
 
 static remap_config_t remap_config;
 
@@ -94,7 +93,9 @@ int ui_test_remap_back(void *context) {
   return GUI_CONTINUE;
 }
 
-int ui_test_remap() {
+int ui_test_remap(remap_config_t config) {
+  remap_config = config;
+
   sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
   sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
   sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
@@ -109,5 +110,5 @@ int ui_test_remap() {
   geom.x = 50;
   geom.y = 50;
   geom.statusbar = false;
-  return display_menu(menu, idx, &geom, &ui_test_remap_loop, &ui_test_remap_back, &ui_test_remap_draw, NULL);
+  return display_menu(menu, idx, &geom, &ui_test_remap_loop, &ui_test_remap_back, &ui_test_remap_draw, DEFAULT_GUIDE, NULL);
 }

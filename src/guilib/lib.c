@@ -142,7 +142,7 @@ bool is_rectangle_touched(int lx, int ly, int rx, int ry) {
   return false;
 }
 
-void draw_menu(struct menu_entry menu[], int total_elements, struct menu_geom geom, int cursor, int offset) {
+void draw_menu(struct menu_entry menu[], int total_elements, struct menu_geom geom, char *guides[4], int cursor, int offset) {
   vita2d_draw_rectangle(geom.x, geom.y, geom.width, geom.height, COLOR_PANEL_BG);
 
   long border_color = COLOR_PANEL_BORDER;
@@ -222,6 +222,26 @@ void draw_menu(struct menu_entry menu[], int total_elements, struct menu_geom ge
           color,
           1.f,
           menu[i].subname
+          );
+    }
+  }
+
+  // it struck me that you don't actually need an array and can just go with single string
+  // too bad the code has already been written, so..
+  int guide_spacing = 5;
+  int guide_x = geom.x + geom.width;
+
+  for (int i = 3; i >= 0; i--) {
+    if (guides[i]) {
+      guide_x -= vita2d_pgf_text_width(gui_font, 1.f, guides[i]) + guide_spacing;
+
+      vita2d_pgf_draw_text(
+          gui_font,
+          guide_x,
+          geom.y + geom.height + 20,
+          0xffffffff,
+          1.f,
+          guides[i]
           );
     }
   }
@@ -325,6 +345,7 @@ int display_menu(
     gui_loop_callback cb,
     gui_back_callback back_cb,
     gui_draw_callback draw_callback,
+    char *guide_strings[],
     void *context
     ) {
   vita2d_end_drawing();
@@ -360,7 +381,7 @@ int display_menu(
       gui_global_draw_callback();
     }
 
-    draw_menu(menu, total_elements, geom, cursor, offset);
+    draw_menu(menu, total_elements, geom, guide_strings, cursor, offset);
 
     int real_cursor = 0;
     for (int c = 0; real_cursor < total_elements; real_cursor++) {

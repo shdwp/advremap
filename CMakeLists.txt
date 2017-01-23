@@ -41,6 +41,12 @@ target_link_libraries(${PROJECT_NAME}.elf
 	m
 	c
 
+	debugnet 
+	SceSysmodule_stub
+	SceNet_stub 
+	SceNetCtl_stub 
+	ScePower_stub 
+	SceAppMgr_stub
 )
 
 add_custom_target(${PROJECT_NAME}.vpk ALL

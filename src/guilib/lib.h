@@ -12,6 +12,14 @@
 #define GUI_CONTINUE 0
 #define GUI_EXIT 1
 
+#define ICON_CROSS(a) "╳" a
+#define ICON_CIRCLE(a) "◯" a
+#define ICON_TRIANGLE(a) "△" a
+#define ICON_SQUARE(a) "□" a
+
+#define DEFAULT_GUIDE (char *[]) {ICON_CROSS("ok"), ICON_CIRCLE("back"), NULL, NULL}
+#define EXT_GUIDE(s, t) (char *[]) {ICON_CROSS("ok"), ICON_CIRCLE("back"), s, t}
+
 struct menu_entry {
   int id;
   unsigned int color;
@@ -46,6 +54,7 @@ int display_menu(
         gui_loop_callback loop_callback,
         gui_back_callback back_callback,
         gui_draw_callback draw_callback,
+        char *guide_strings[],
         void *context
         );
 

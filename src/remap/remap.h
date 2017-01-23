@@ -7,6 +7,9 @@
 #include <psp2/touch.h>
 #include <math.h>
 #include <string.h>
+#include "debugnet.h"
+
+#define debug(format, args...) debugNetPrintf(DEBUG, format, args)
 
 typedef enum trigger {
     CTRL_SELECT      = 0x000001,        //!< Select button.
@@ -44,6 +47,9 @@ typedef enum trigger {
     LS_ANY,
 } trigger_t;
 
+extern int TRIGGERS[30];
+#define TRIGGERS_COUNT 30
+
 typedef enum {
     ACTION_BUTTON,
     ACTION_FRONTTOUCHSCREEN,
@@ -76,6 +82,7 @@ typedef struct {
 //
 
 void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back);
+char *remap_trigger_name(int id);
 void remap_config_action_name(remap_config_t config, int i, char *buf);
 
 #include "config.h"

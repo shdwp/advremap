@@ -36,5 +36,5 @@ int ui_main_menu() {
   menu[idx++] = (struct menu_entry) { .name = "Quit" };
 
   struct menu_geom geom = make_geom_centered(500, 200);
-  return display_menu(menu, idx, &geom, &ui_main_menu_loop, &ui_main_menu_back, NULL, &apps);
+  return display_menu(menu, idx, &geom, &ui_main_menu_loop, &ui_main_menu_back, NULL, DEFAULT_GUIDE, &apps);
 }

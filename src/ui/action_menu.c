@@ -3,22 +3,21 @@
 #include "test_remap.h"
 
 enum {
-    APP_MENU_TEST_REMAP,
+    ACTION_MENU_TEST_REMAP,
 };
 
 #define MENU_RELOAD 2
 
-static int iteration = 0;
-static remap_config_t config;
-
-int ui_app_menu_loop(int cursor_id, void *context) {
+int ui_action_menu_loop(int cursor_id, void *context) {
   if (was_button_pressed(SCE_CTRL_CROSS)) {
+    /*
     switch (cursor_id) {
       case APP_MENU_TEST_REMAP:
         ui_test_remap();
         return MENU_RELOAD;
         break;
     }
+    */
   }
 
   return 0;
@@ -64,6 +63,6 @@ int ui_app_menu(application_t app) {
     }
 
     struct menu_geom geom = make_geom_centered(500, HEIGHT - 200);
-    ret = display_menu(menu, idx, &geom, &ui_app_menu_loop, &ui_app_menu_back, NULL, &app);
+    ret = display_menu(menu, idx, &geom, &ui_app_menu_loop, &ui_app_menu_back, NULL, DEFAULT_GUIDE, &app);
   } while (ret != GUI_EXIT);
 }

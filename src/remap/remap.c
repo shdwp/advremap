@@ -2,6 +2,42 @@
 
 #include "../guilib/lib.h"
 
+int TRIGGERS[] =  {
+    CTRL_SELECT,
+    CTRL_L3,
+    CTRL_R3,
+    CTRL_START,
+    CTRL_UP,
+    CTRL_RIGHT,
+    CTRL_DOWN,
+    CTRL_LEFT,
+    CTRL_LTRIGGER,
+    CTRL_RTRIGGER,
+    CTRL_L1,
+    CTRL_R1,
+    CTRL_TRIANGLE,
+    CTRL_CIRCLE,
+    CTRL_CROSS,
+    CTRL_SQUARE,
+
+    TOUCHSCREEN_NW,
+    TOUCHSCREEN_NE,
+    TOUCHSCREEN_SW,
+    TOUCHSCREEN_SE,
+
+    RS_UP,
+    RS_DOWN,
+    RS_LEFT,
+    RS_RIGHT,
+    RS_ANY,
+
+    LS_UP,
+    LS_DOWN,
+    LS_LEFT,
+    LS_RIGHT,
+    LS_ANY,
+};
+
 // trigger
 enum TriggerType {
     TRIGGER_TYPE_BUTTON,
@@ -306,52 +342,49 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
     }
 }
 
-char *button_name(int id) {
-    char *trigger_name;
+char *remap_trigger_name(int id) {
+    char *trigger_name = NULL;
     switch (id) {
-        case CTRL_SELECT: trigger_name = "SELECT"; break;
-        case CTRL_L3: trigger_name = ""; break;
-        case CTRL_R3: trigger_name = ""; break;
-        case CTRL_START: trigger_name = "START"; break;
-        case CTRL_UP: trigger_name = "UP"; break;
-        case CTRL_RIGHT: trigger_name = "RIGHT"; break;
-        case CTRL_DOWN: trigger_name = "DOWN"; break;
-        case CTRL_LEFT: trigger_name = "LEFT"; break;
-        case CTRL_LTRIGGER: trigger_name = "LTRIGGER"; break;
-        case CTRL_RTRIGGER: trigger_name = "RTRIGGER"; break;
-        case CTRL_L1: trigger_name = ""; break;
-        case CTRL_R1: trigger_name = ""; break;
-        case CTRL_TRIANGLE: trigger_name = "TRIANGLE"; break;
-        case CTRL_CIRCLE: trigger_name = "CIRCLE"; break;
-        case CTRL_CROSS: trigger_name = "CROSS"; break;
-        case CTRL_SQUARE: trigger_name = "SQUARE"; break;
+        case CTRL_SELECT: trigger_name = "Select"; break;
+        case CTRL_START: trigger_name = "Start"; break;
+        case CTRL_UP: trigger_name = "▲"; break;
+        case CTRL_RIGHT: trigger_name = "▶"; break;
+        case CTRL_DOWN: trigger_name = "▼"; break;
+        case CTRL_LEFT: trigger_name = "◀"; break;
+        case CTRL_LTRIGGER: trigger_name = "L◤"; break;
+        case CTRL_RTRIGGER: trigger_name = "◥R"; break;
+        case CTRL_TRIANGLE: trigger_name = "△"; break;
+        case CTRL_CIRCLE: trigger_name = "◯"; break;
+        case CTRL_CROSS: trigger_name = "╳"; break;
+        case CTRL_SQUARE: trigger_name = "□"; break;
 
-        case TOUCHSCREEN_NW: trigger_name = "TOUCH NW"; break;
-        case TOUCHSCREEN_NE: trigger_name = "TOUCH NE"; break;
-        case TOUCHSCREEN_SW: trigger_name = "TOUCH SW"; break;
-        case TOUCHSCREEN_SE: trigger_name = "TOUCH SE"; break;
-        case RS_UP: trigger_name = "RS UP"; break;
-        case RS_DOWN: trigger_name = "RS DOWN"; break;
-        case RS_LEFT: trigger_name = "RS LEFT"; break;
-        case RS_RIGHT: trigger_name = "RS RIGHT"; break;
+        case TOUCHSCREEN_NW: trigger_name = "⊂⊃ NW"; break;
+        case TOUCHSCREEN_NE: trigger_name = "⊂⊃ NE"; break;
+        case TOUCHSCREEN_SW: trigger_name = "⊂⊃ SW"; break;
+        case TOUCHSCREEN_SE: trigger_name = "⊂⊃ SE"; break;
+        case RS_UP: trigger_name = "RS▲"; break;
+        case RS_DOWN: trigger_name = "RS▼"; break;
+        case RS_LEFT: trigger_name = "RS◀"; break;
+        case RS_RIGHT: trigger_name = "RS▶"; break;
 
-        case LS_UP: trigger_name = "LS UP"; break;
-        case LS_DOWN: trigger_name = "LS DOWN"; break;
-        case LS_LEFT: trigger_name = "LS LEFT"; break;
-        case LS_RIGHT: trigger_name = "LS RIGHT"; break;
+        case LS_UP: trigger_name = "LS▲"; break;
+        case LS_DOWN: trigger_name = "LS▼"; break;
+        case LS_LEFT: trigger_name = "LS◀"; break;
+        case LS_RIGHT: trigger_name = "LS▶"; break;
     }
+
     return trigger_name;
 }
 
 void remap_config_action_name(remap_config_t config, int n, char *buf) {
-    char *trigger_name = button_name(config.triggers[n]);
+    char *trigger_name = remap_trigger_name(config.triggers[n]);
 
-    sprintf(buf, "%s = ", trigger_name);
+    sprintf(buf, "%s ▶ ", trigger_name);
     for (int i = 0; i < config.actions[n].size; i++) {
         action_t action = config.actions[n].list[i];
         switch (action.type) {
             case ACTION_BUTTON:
-                sprintf(buf, "%s %s", buf, button_name(action.value));
+                sprintf(buf, "%s %s", buf, remap_trigger_name(action.value));
                 break;
         }
     }

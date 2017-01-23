@@ -13,5 +13,6 @@ void config_app_path(application_t app, char *path);
 int config_save(char *path, remap_config_t config);
 int config_load(char *path, remap_config_t *result);
 int config_default(remap_config_t *config);
+void config_append_remap(remap_config_t *config);
 
 #endif
