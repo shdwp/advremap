@@ -4,6 +4,21 @@
 
 static remap_config_t remap_config;
 
+void draw_sticks_at(SceCtrlData pad, int x, int y) {
+    int r = WIDTH - WIDTH / 3;
+    int l = WIDTH / 3;
+    int active_color = 0xffff00ff, inactive_color = 0xaaffffff;
+
+    float stick_fac = 10;
+    int rx = pad.rx;
+    int ry = pad.ry;
+    vita2d_draw_fill_circle(r - 100 + x + (float) rx / stick_fac, 130 + y + (float) ry / stick_fac, 10, inactive_color);
+
+    int lx = pad.lx;
+    int ly = pad.ly;
+    vita2d_draw_fill_circle(l + 100 + x + (float) lx / stick_fac, 130 + y + (float) ly / stick_fac, 10, inactive_color);
+}
+
 void draw_pad_at(SceCtrlData pad, int x, int y) {
     int r = WIDTH - WIDTH / 3;
     int l = WIDTH / 3;
@@ -34,15 +49,6 @@ void draw_pad_at(SceCtrlData pad, int x, int y) {
 
     vita2d_pgf_draw_text(gui_font, l+x, 40+y, pad.lt > 0 ? active_color : inactive_color, 1.0f, "L");
     vita2d_pgf_draw_text(gui_font, r+x, 40+y, pad.rt > 0 ? active_color : inactive_color, 1.0f, "R");
-
-    float stick_fac = 10;
-    int rx = pad.rx;
-    int ry = pad.ry;
-    vita2d_draw_fill_circle(r - 100 + x + (float) rx / stick_fac, 130 + y + (float) ry / stick_fac, 10, inactive_color);
-
-    int lx = pad.lx;
-    int ly = pad.ly;
-    vita2d_draw_fill_circle(l + 100 + x + (float) lx / stick_fac, 130 + y + (float) ly / stick_fac, 10, inactive_color);
 }
 
 void draw_touch_at(SceTouchData touch, int x, int y) {
@@ -79,6 +85,7 @@ void ui_test_remap_draw() {
     draw_touch_at(front, 300, 90);
     draw_touch_at(back, 300, 200);
     draw_pad_at(pad, 0, 300);
+    draw_sticks_at(pad, 0, 300);
 }
 
 int ui_test_remap_loop(int cursor_id, void *context) {
@@ -96,11 +103,6 @@ int ui_test_remap_back(void *context) {
 int ui_test_remap(remap_config_t config) {
   remap_config = config;
 
-  sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
-  sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-  sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
-  sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
-
   struct menu_entry menu[16];
   int idx = 0;
 
@@ -110,5 +112,5 @@ int ui_test_remap(remap_config_t config) {
   geom.x = 50;
   geom.y = 50;
   geom.statusbar = false;
-  return display_menu(menu, idx, &geom, &ui_test_remap_loop, &ui_test_remap_back, &ui_test_remap_draw, DEFAULT_GUIDE, NULL);
+  return display_menu(menu, idx, &geom, &ui_test_remap_loop, &ui_test_remap_back, &ui_test_remap_draw, NO_GUIDE, NULL);
 }

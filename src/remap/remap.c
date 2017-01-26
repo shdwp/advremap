@@ -20,22 +20,23 @@ int TRIGGERS[] =  {
     CTRL_CROSS,
     CTRL_SQUARE,
 
-    TOUCHSCREEN_NW,
-    TOUCHSCREEN_NE,
-    TOUCHSCREEN_SW,
-    TOUCHSCREEN_SE,
-
     RS_UP,
     RS_DOWN,
     RS_LEFT,
     RS_RIGHT,
-    RS_ANY,
 
     LS_UP,
     LS_DOWN,
     LS_LEFT,
     LS_RIGHT,
+
+    RS_ANY,
     LS_ANY,
+
+    TOUCHSCREEN_NW,
+    TOUCHSCREEN_NE,
+    TOUCHSCREEN_SW,
+    TOUCHSCREEN_SE,
 };
 
 // trigger
@@ -59,31 +60,26 @@ int trigger_type(trigger_t trigger) {
 
 // actionshortcuts
 action_t make_button_action(int identifier) {
-    action_t action = {
+    return (action_t) {
         .type = ACTION_BUTTON,
         .value = identifier,
     };
-
-    return action;
 }
 
 action_t make_touch_action(int x, int y, int port) {
-    if (port == SCE_TOUCH_PORT_FRONT) {
-        action_t action = {
-            .type = ACTION_FRONTTOUCHSCREEN,
-            .x = x,
-            .y = y,
-        };
-        return action;
+    return (action_t) {
+        .type = port == SCE_TOUCH_PORT_FRONT ? ACTION_FRONTTOUCHSCREEN : ACTION_BACKTOUCHSCREEN,
+        .x = x,
+        .y = y,
+    };
+}
 
-    } else {
-        action_t action = {
-            .type = ACTION_BACKTOUCHSCREEN,
-            .x = x,
-            .y = y,
-        };
-        return action;
-    }
+action_t make_stick_action(int x, int y, int type) {
+    return (action_t) {
+        .type = type,
+        .x = x,
+        .y = y
+    };
 }
 
 // check
@@ -115,9 +111,10 @@ int trigger_check_touch(trigger_t trigger, SceTouchData data) {
 }
 
 #define STICK_ZERO 255 / 2
+#define TRIGGER_CHECK_STICK_DEADZONE 70
 
 bool trigger_check_stick(trigger_t trigger, SceCtrlData data) {
-    int deadzone = 70;
+    int deadzone = TRIGGER_CHECK_STICK_DEADZONE;
 
     switch (trigger) {
         case RS_UP:
@@ -200,49 +197,18 @@ void spawn_touch(int x, int y, SceTouchData *mut_data) {
     }
 }
 
-// config
-remap_config_t load_config() {
-    int size = 2;
-    trigger_t *triggers = malloc(sizeof(trigger_t) * size);
-    action_list_t *actions = malloc(sizeof(action_list_t) * size);
-
-    triggers[0] = TOUCHSCREEN_NW;
-
-    action_t *nw_actions = malloc(sizeof(action_t) * 1);
-    nw_actions[0] = make_button_action(SCE_CTRL_LTRIGGER);
-    action_list_t one_actions_list = {
-        .size = 1,
-        .list = nw_actions
-    };
-    actions[0] = one_actions_list;
-
-    triggers[1] = CTRL_CROSS;
-
-    action_t *cross_actions = malloc(sizeof(action_t) * 3);
-    cross_actions[0] = make_button_action(SCE_CTRL_CIRCLE);
-    cross_actions[1] = make_button_action(SCE_CTRL_SQUARE);
-    cross_actions[2] = make_button_action(SCE_CTRL_TRIANGLE);
-    action_list_t cross_actions_list = {
-        .size = 3,
-        .list = cross_actions,
-    };
-
-    actions[1] = cross_actions_list;
-
-    remap_config_t config = {
-        .size = size,
-        .ls_deadzone = 70,
-        .rs_deadzone = 70,
-        .front_touch_deadzone_vertical = 100,
-        .front_touch_deadzone_horizontal = 100,
-
-        .back_touch_deadzone_vertical = 45,
-        .back_touch_deadzone_horizontal = 200,
-        .triggers = triggers,
-        .actions = actions,
-    };
-
-    return config;
+int remap_test_trigger(trigger_t trigger, SceCtrlData pad, SceTouchData front, SceTouchData back) {
+    int type = trigger_type(trigger);
+    switch (type) {
+        case TRIGGER_TYPE_BUTTON:
+            return pad.buttons & trigger ? 0 : -1;
+        case TRIGGER_TYPE_TOUCH:
+            return trigger_check_touch(trigger, back);
+        case TRIGGER_TYPE_STICK:
+            return trigger_check_stick(trigger, pad) ? 0 : -1;
+        default:
+            return -1;
+    }
 }
 
 // deadzone
@@ -266,7 +232,7 @@ void deadzone_ignore_touch(int horizontal, int vertical, SceTouchData *data) {
     }
 }
 
-void deadzone_ignore(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back) {
+void remap_deadzone_ignore(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back) {
     if (abs(mut_pad->rx - STICK_ZERO) < config.rs_deadzone && abs(mut_pad->ry - STICK_ZERO) < config.rs_deadzone ) {
         cancel_stick(RS_ANY, mut_pad);
     }
@@ -279,61 +245,140 @@ void deadzone_ignore(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *
     deadzone_ignore_touch(config.back_touch_deadzone_horizontal, config.back_touch_deadzone_vertical, mut_back);
 }
 
+int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData front, SceTouchData back) {
+    int actions_i = 0;
+
+    for (int i = 0; i < TRIGGERS_NOTOUCH_COUNT; i++) {
+        if (remap_test_trigger(TRIGGERS[i], pad, front, back) >= 0) {
+
+            int type = trigger_type(TRIGGERS[i]);
+            int stick_type = TRIGGERS[i] <= RS_RIGHT ? ACTION_RS : ACTION_LS;
+
+            switch (type) {
+                case TRIGGER_TYPE_BUTTON:
+                    actions->list[actions_i++] = make_button_action(TRIGGERS[i]);
+                    break;
+                case TRIGGER_TYPE_STICK:
+                    if (true) {
+                        int x = stick_type == ACTION_RS ? pad.rx : pad.lx;
+                        int y = stick_type == ACTION_RS ? pad.ry : pad.ly;
+
+                        x -= STICK_ZERO;
+                        y -= STICK_ZERO;
+
+                        actions->list[actions_i++] = make_stick_action(
+                                abs(x) > 15 ? x : 0,
+                                abs(y) > 15 ? y : 0,
+                                stick_type
+                                );
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    for (int i = 0; i < front.reportNum; i++) {
+        actions->list[actions_i++] = make_touch_action(front.report[i].x, front.report[i].y, SCE_TOUCH_PORT_FRONT);
+    }
+
+    for (int i = 0; i < back.reportNum; i++) {
+        actions->list[actions_i++] = make_touch_action(back.report[i].x, back.report[i].y, SCE_TOUCH_PORT_BACK);
+    }
+
+    actions->size = actions_i;
+    actions->list = realloc(actions->list, sizeof(action_t) * actions_i);
+
+    return actions->size > 0 ? 0 : -1;
+}
+
+int remap_read_trigger(trigger_t *trigger, SceCtrlData pad, SceTouchData front, SceTouchData back) {
+    for (int i = 0; i < TRIGGERS_COUNT; i++) {
+        if (remap_test_trigger(TRIGGERS[i], pad, front, back) >= 0) {
+            *trigger = TRIGGERS[i];
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
+void stick_values_append(char *x, char *y, int dx, int dy) {
+    int overflow = *x;
+    if (overflow + dx >= 255) {
+        *x = 255;
+    } else if (overflow + dx <= 0) {
+        *x = 0;
+    } else {
+        *x += dx;
+    }
+
+    overflow = *y;
+    if (overflow + dy > 255) {
+        *y = 255;
+    } else if (overflow - dy < 0) {
+        *y = 0;
+    } else {
+        *y += dy;
+    }
+}
+
 // remap
 void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back) {
-    deadzone_ignore(config, mut_pad, mut_front, mut_back);
+    remap_deadzone_ignore(config, mut_pad, mut_front, mut_back);
 
     SceCtrlData pad;
     memcpy(&pad, mut_pad, sizeof(pad));
+    int spawned_buttons[TRIGGERS_BUTTONS_COUNT];
+    int spawned_buttons_i = 0;
 
     for (int i = 0; i < config.size; i++) {
         trigger_t trigger = config.triggers[i];
 
-        bool firing = false;
-        int identifier = -1;
-
         int type = trigger_type(trigger);
-        switch (type) {
-            case TRIGGER_TYPE_BUTTON:
-                firing = pad.buttons & trigger;
-                break;
-            case TRIGGER_TYPE_TOUCH:
-                identifier = trigger_check_touch(trigger, *mut_back);
-                firing = identifier != -1;
-                break;
-            case TRIGGER_TYPE_STICK:
-                firing = trigger_check_stick(trigger, pad);
-                break;
-        }
-
-        if (firing) {
+        int trigger_test = remap_test_trigger(trigger, pad, *mut_front, *mut_back);
+        if (trigger_test >= 0) {
             // prevent
-            switch (type) {
-                case TRIGGER_TYPE_BUTTON:
-                    cancel_button((int) trigger, mut_pad);
-                    break;
-                case TRIGGER_TYPE_TOUCH:
-                    cancel_touch(identifier, mut_back);
-                    break;
-                case TRIGGER_TYPE_STICK:
-                    cancel_stick(trigger, mut_pad);
-                    break;
+            bool should_prevent = true;
+            for (int n = 0; n < spawned_buttons_i; n++) {
+                if (spawned_buttons[n] == trigger) {
+                    should_prevent = false;
+                }
+            }
+
+            if (should_prevent) {
+                switch (type) {
+                    case TRIGGER_TYPE_BUTTON:
+                        cancel_button((int) trigger, mut_pad);
+                        break;
+                    case TRIGGER_TYPE_TOUCH:
+                        cancel_touch(trigger_test, mut_back);
+                        break;
+                    case TRIGGER_TYPE_STICK:
+                        cancel_stick(trigger, mut_pad);
+                        break;
+                }
             }
 
             action_list_t array = config.actions[i];
             for (int n = 0; n < array.size; n++) {
                 action_t action = array.list[n];
+                int overflow = 0;
 
                 switch (action.type) {
                     case ACTION_BUTTON:
                         mut_pad->buttons |= action.value;
+                        spawned_buttons[spawned_buttons_i++] = action.value;
                         break;
                     case ACTION_FRONTTOUCHSCREEN:
                     case ACTION_BACKTOUCHSCREEN:
                         spawn_touch(action.x, action.y, action.type == ACTION_FRONTTOUCHSCREEN ? mut_front : mut_back);
                         break;
                     case ACTION_RS:
+                        stick_values_append(&mut_pad->rx, &mut_pad->ry, action.x, action.y);
+                        break;
                     case ACTION_LS:
+                        stick_values_append(&mut_pad->lx, &mut_pad->ly, action.x, action.y);
                         break;
                 }
 
@@ -342,7 +387,7 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
     }
 }
 
-char *remap_trigger_name(int id) {
+void remap_trigger_name(int id, char buf[TRIGGER_NAME_SIZE]) {
     char *trigger_name = NULL;
     switch (id) {
         case CTRL_SELECT: trigger_name = "Select"; break;
@@ -373,19 +418,48 @@ char *remap_trigger_name(int id) {
         case LS_RIGHT: trigger_name = "LS▶"; break;
     }
 
-    return trigger_name;
+    strcpy(buf, trigger_name);
 }
 
-void remap_config_action_name(remap_config_t config, int n, char *buf) {
-    char *trigger_name = remap_trigger_name(config.triggers[n]);
+void remap_config_action_name(remap_config_t config, int n, char buf[ACTION_NAME_SIZE]) {
+    char trigger_name[256];
+    remap_trigger_name(config.triggers[n], trigger_name);
 
-    sprintf(buf, "%s ▶ ", trigger_name);
+    sprintf(buf, "%s -> ", trigger_name);
     for (int i = 0; i < config.actions[n].size; i++) {
+        if (strlen(buf) > 768) {
+            sprintf(buf, "%s (%d others)", buf, config.actions[n].size - i);
+            break;
+        }
+
         action_t action = config.actions[n].list[i];
+        char name[256];
+        bool name_set = false;
         switch (action.type) {
             case ACTION_BUTTON:
-                sprintf(buf, "%s %s", buf, remap_trigger_name(action.value));
+                name_set = true;
+                remap_trigger_name(action.value, name);
                 break;
+            case ACTION_FRONTTOUCHSCREEN:
+                name_set = true;
+                strcpy(name, "[  ]");
+                break;
+            case ACTION_BACKTOUCHSCREEN:
+                name_set = true;
+                strcpy(name, "⊂⊃");
+                break;
+            case ACTION_RS:
+                name_set = true;
+                strcpy(name, "RS");
+                break;
+            case ACTION_LS:
+                name_set = true;
+                strcpy(name, "LS");
+                break;
+        }
+
+        if (name_set) {
+            sprintf(buf, "%s %s", buf, name);
         }
     }
 }

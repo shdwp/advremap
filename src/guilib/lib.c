@@ -427,7 +427,7 @@ int display_menu(
 }
 
 
-void display_alert(char *message, char *button_captions[], int buttons_count, gui_loop_callback cb, void *context) {
+int display_alert(char *message, char *button_captions[], int buttons_count, gui_loop_callback cb, void *context) {
   gui_ctrl_end();
 
   struct menu_geom alert_geom = make_geom_centered(400, 200);
@@ -449,15 +449,17 @@ void display_alert(char *message, char *button_captions[], int buttons_count, gu
       result = 3;
     }
 
-    if (cb && result != -1 && result < buttons_count) {
-      switch(cb(result, context)) {
-        case 1:
-          gui_ctrl_end();
-          return;
+    if (cb) {
+      int code;
+      if ((code = cb(result, context)) != GUI_CONTINUE) {
+        gui_ctrl_end();
+        return code;
       }
-    } else if (result == 0) {
+    }
+
+    if (result == 0 && buttons_count > 0) {
       gui_ctrl_end();
-      return;
+      return GUI_EXIT;
     }
 
     gui_ctrl_end();

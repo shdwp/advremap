@@ -2,8 +2,12 @@
 #include <psp2/ctrl.h>
 #include <psp2/touch.h>
 #include <psp2/kernel/modulemgr.h>
+#include <psp2/apputil.h>
+#include <psp2/io/dirent.h>
+#include <psp2/sysmodule.h>
 
 #include "../src/remap/remap.h"
+#include "../src/remap/config.h"
 
 // meta
 #define HOOKS_COUNT 6
@@ -19,13 +23,16 @@ CtrlTouchWrapper(4)
 CtrlTouchWrapper(5)
 void _start() __attribute__ ((weak, alias ("module_start")));
 
-static remap_config_t remap_config;
 /*
    PCSB00866 - TOCS
    PCSB00867 - P4DAN
    PCSB00743 - ??
    PCSB00497 - YS
+   PCSE00867 - DiVA
 */
+
+// remap
+static remap_config_t remap_config;
 
 int ctrl_buffer_wrapper(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count) {
   if (ref_hook == 0) {
@@ -68,11 +75,13 @@ int ctrl_touch_wrapper(int port, tai_hook_ref_t ref_hook, SceTouchData *data, in
   }
 }
 
+char mem_config[CONFIG_MEM_MAX_SIZE] = "ADVREMAP_IM_A_LOUSY_PROGRAMMER";
+
+// start/stop
 int module_start(SceSize argc, const void *args) {
-  remap_config = load_config();
+  config_mem_load((void *) mem_config, &remap_config);
 
   int i = -1;
-
   g_hooks[++i] = taiHookFunctionImport(&tai_hook[i],
       TAI_MAIN_MODULE,
       TAI_ANY_LIBRARY,

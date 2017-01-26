@@ -19,6 +19,7 @@
 
 #define DEFAULT_GUIDE (char *[]) {ICON_CROSS("ok"), ICON_CIRCLE("back"), NULL, NULL}
 #define EXT_GUIDE(s, t) (char *[]) {ICON_CROSS("ok"), ICON_CIRCLE("back"), s, t}
+#define NO_GUIDE (char *[]) {NULL, NULL, NULL, NULL}
 
 struct menu_entry {
   int id;
@@ -58,7 +59,7 @@ int display_menu(
         void *context
         );
 
-void display_alert(
+int display_alert(
         char *message,
         char *button_captions[],
         int buttons_count,

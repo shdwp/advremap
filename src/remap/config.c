@@ -1,12 +1,22 @@
 #include "config.h"
 
+#include <psp2/io/fcntl.h>
+
 #define FREAD_INTO(into, stream) fread(&into, sizeof(into), 1, stream)
 #define FWRITE_FROM(from, stream) fwrite(&from, sizeof(from), 1, stream)
 
+#define VOID_FOPEN() size_t v_offset = 0;
+#define VOID_FREAD_INTO(type, into, ptr) into = *((type *) (ptr + v_offset)); v_offset += sizeof(type);
+#define VOID_FREAD(type, into, size, ptr) into = ((type *) (ptr + v_offset)); v_offset += size;
+
 #define CONFIG_VERSION 1
 
-void config_app_path(application_t app, char *path) {
-    sprintf(path, "ux0:/data/advremap/%s", app.id);
+void config_path(application_t app, char path[CONFIG_APP_PATH_SIZE]) {
+    sprintf(path, "ux0:data/advremap/%s", app.id);
+}
+
+void config_binary_path(application_t app, char path[CONFIG_APP_PATH_SIZE]) {
+    sprintf(path, "ux0:tai/advremap/%s.suprx", app.id);
 }
 
 int config_load(char *path, remap_config_t *result) {
@@ -66,6 +76,56 @@ int config_save(char *path, remap_config_t config) {
     }
 
     fclose(file);
+
+    return 0;
+}
+
+int config_mem_save(char *binary_path, char *config_path) {
+    void *config_mem = malloc(CONFIG_MEM_MAX_SIZE);
+    FILE *config_file = fopen(config_path, "r");
+    fread(config_mem, CONFIG_MEM_MAX_SIZE, 1, config_file);
+    fclose(config_file);
+
+    // it looks like fseek doesn't work, so we use sceIo here
+    FILE *binary_file = sceIoOpen(binary_path, SCE_O_WRONLY, 0777);
+    sceIoLseek(binary_file, CONFIG_MEM_OFFSET, SCE_SEEK_SET);
+    sceIoWrite(binary_file, config_mem, CONFIG_MEM_MAX_SIZE);
+
+    sceIoClose(binary_file);
+
+    return 0;
+}
+
+int config_mem_load(void *ptr, remap_config_t *result) {
+    VOID_FOPEN();
+
+    int version = 0;
+    VOID_FREAD_INTO(int, version, ptr);
+    if (version != CONFIG_VERSION) {
+        return -1;
+    }
+
+    // read deadzones
+    VOID_FREAD_INTO(int, result->rs_deadzone, ptr);
+    VOID_FREAD_INTO(int, result->ls_deadzone, ptr);
+    VOID_FREAD_INTO(int, result->back_touch_deadzone_vertical, ptr);
+    VOID_FREAD_INTO(int, result->back_touch_deadzone_horizontal, ptr);
+    VOID_FREAD_INTO(int, result->front_touch_deadzone_vertical, ptr);
+    VOID_FREAD_INTO(int, result->front_touch_deadzone_horizontal, ptr);
+
+    VOID_FREAD_INTO(int, result->size, ptr);
+    result->triggers = malloc(sizeof(trigger_t) * result->size);
+    VOID_FREAD(trigger_t, result->triggers, sizeof(trigger_t) * result->size, ptr);
+
+    // read actions
+    result->actions = malloc(sizeof(action_list_t) * result->size);
+    for (int i = 0; i < result->size; i++) {
+        VOID_FREAD_INTO(int, result->actions[i].size, ptr);
+        result->actions[i].list = malloc(sizeof(action_t) * result->actions[i].size);
+
+        VOID_FREAD(action_t, result->actions[i].list, sizeof(action_t) * result->actions[i].size, ptr);
+    }
+
     return 0;
 }
 
@@ -77,6 +137,8 @@ int config_default(remap_config_t *config) {
     config->front_touch_deadzone_vertical = 0;
     config->front_touch_deadzone_horizontal = 0;
     config->size = 0;
+
+    return 0;
 }
 
 void config_append_remap(remap_config_t *config) {

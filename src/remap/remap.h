@@ -9,7 +9,7 @@
 #include <string.h>
 #include "debugnet.h"
 
-#define debug(format, args...) debugNetPrintf(DEBUG, format, args)
+#define debug(format, args...) debugNetPrintf(DEBUG, format "\n", args)
 
 typedef enum trigger {
     CTRL_SELECT      = 0x000001,        //!< Select button.
@@ -29,26 +29,30 @@ typedef enum trigger {
     CTRL_CROSS       = 0x004000,        //!< Cross button.
     CTRL_SQUARE      = 0x008000,        //!< Square button.
 
-    TOUCHSCREEN_NW = 0x400000,
-    TOUCHSCREEN_NE,
-    TOUCHSCREEN_SW,
-    TOUCHSCREEN_SE,
 
     RS_UP = 0x500000,
     RS_DOWN,
     RS_LEFT,
     RS_RIGHT,
-    RS_ANY,
 
     LS_UP,
     LS_DOWN,
     LS_LEFT,
     LS_RIGHT,
+
+    TOUCHSCREEN_NW = 0x400000,
+    TOUCHSCREEN_NE,
+    TOUCHSCREEN_SW,
+    TOUCHSCREEN_SE,
+
+    RS_ANY = 0x300000,
     LS_ANY,
 } trigger_t;
 
 extern int TRIGGERS[30];
 #define TRIGGERS_COUNT 30
+#define TRIGGERS_BUTTONS_COUNT 16
+#define TRIGGERS_NOTOUCH_COUNT TRIGGERS_BUTTONS_COUNT + 8
 
 typedef enum {
     ACTION_BUTTON,
@@ -79,11 +83,20 @@ typedef struct {
     action_list_t *actions;
 } remap_config_t;
 
+#define REMAP_MAX_ACTIONS 24
+
 //
 
+void remap_deadzone_ignore(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back);
 void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back);
-char *remap_trigger_name(int id);
-void remap_config_action_name(remap_config_t config, int i, char *buf);
+
+int remap_read_trigger(trigger_t *trigger, SceCtrlData pad, SceTouchData front, SceTouchData back);
+int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData front, SceTouchData back);
+
+#define TRIGGER_NAME_SIZE 256
+#define ACTION_NAME_SIZE 1024
+void remap_trigger_name(int id, char buf[TRIGGER_NAME_SIZE]);
+void remap_config_action_name(remap_config_t config, int i, char buf[ACTION_NAME_SIZE]);
 
 #include "config.h"
 

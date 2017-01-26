@@ -28,14 +28,12 @@ endif()
 add_executable(advbuttonremap
   main.c
   ../src/remap/remap.c
+  ../src/remap/config.c
 )
 
 target_link_libraries(advbuttonremap
   taihen_stub
-  taihenForKernel_stub
   SceLibc_stub
-  SceLibKernel_stub
-  SceIofilemgr_stub
   SceCtrl_stub
   SceTouch_stub
 )
@@ -45,5 +43,6 @@ set_target_properties(advbuttonremap
 )
 
 vita_create_self(advbuttonremap.suprx advbuttonremap
+  UNCOMPRESSED
   CONFIG ${CMAKE_SOURCE_DIR}/main.yml
 )
