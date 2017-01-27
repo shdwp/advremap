@@ -224,19 +224,20 @@ int ui_app_menu_loop(int cursor_id, void *context) {
 }
 
 int ui_app_menu_back(void *context) {
-  application_t *app = (application_t *) context;
-  char path[256], binary_path[CONFIG_APP_PATH_SIZE];
-  config_path(*app, &path);
-  config_binary_path(*app, &binary_path);
+  if (config.size > 0) {
+    application_t *app = (application_t *) context;
+    char path[256], binary_path[CONFIG_APP_PATH_SIZE];
+    config_path(*app, &path);
+    config_binary_path(*app, &binary_path);
 
-  config_save(path, config);
-  config_binary_install(binary_path);
-  config_binary_save(binary_path, path);
+    config_save(path, config);
+    config_binary_install(binary_path);
+    config_binary_save(binary_path, path);
 
-  int taihen_append_result = config_taihen_append(*app);
-  char *alert_text;
-  if (taihen_append_result  == 1) {
-    alert_text = "Plugin was not enabled previously, so:\n\
+    int taihen_append_result = config_taihen_append(*app);
+    char *alert_text;
+    if (taihen_append_result  == 1) {
+      alert_text = "Plugin was not enabled previously, so:\n\
 1. start moleculeShell\n\
 2. open ux0:tai/config.txt\n\
 3. uncomment two last lines (remove #)\n\
@@ -244,8 +245,8 @@ int ui_app_menu_back(void *context) {
 5. press Start and select\n \"Reload taiHEN config.txt\"\n\
 \n\
 After this you may start the game!";
-  } else if (taihen_append_result == 2) {
-    alert_text = "Configuration was updated, but not enabled:\n\
+    } else if (taihen_append_result == 2) {
+      alert_text = "Configuration was updated, but not enabled:\n\
 1. start moleculeShell\n\
 2. open ux0:tai/config.txt\n\
 3. uncomment two last lines (remove #)\n\
@@ -253,17 +254,18 @@ After this you may start the game!";
 5. press Start and select\n \"Reload taiHEN config.txt\"\n\
 \n\
 After this you may start the game!";
-  }
+    }
 
-  if (taihen_append_result > 0) {
-    display_alert(
-        alert_text,
-        make_geom_centered(500, HEIGHT - 230),
-        NULL,
-        1,
-        NULL,
-        NULL
-        );
+    if (taihen_append_result > 0) {
+      display_alert(
+          alert_text,
+          make_geom_centered(500, HEIGHT - 230),
+          NULL,
+          1,
+          NULL,
+          NULL
+          );
+    }
   }
 
   return GUI_EXIT;

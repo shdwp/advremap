@@ -22,14 +22,8 @@ void main() {
     sceAppUtilInit(&init, &boot);
     sceAppUtilPhotoMount();
 
-    /*
-    int root = sceIoDopen("photo0:/");
-    debug("open %d\n", root);
-    SceIoDirent folder;
-    while ((sceIoDread(root, &folder) > 0)) {
-        debug("folder %s\n", folder.d_name);
-    }
-    */
+    sceIoMkdir("ux0:data/advremap", 0777);
+    sceIoMkdir("ux0:tai/advremap", 0777);
 
     sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
     sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);

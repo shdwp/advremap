@@ -22,13 +22,22 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2800000000000001")
 
-include_directories()
+add_definitions(-DSQLITE_OS_OTHER=1)
+add_definitions(-DSQLITE_TEMP_STORE=3)
+add_definitions(-DSQLITE_THREADSAFE=0)
+
+include_directories(
+	sqlite3
+)
 
 link_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 add_executable(${PROJECT_NAME}.elf
+    sqlite3/sqlite3.c
+	src/vita_sqlite.c
+
 	src/main.c
 	src/guilib/lib.c
 	src/ui/test_remap.c
@@ -37,6 +46,8 @@ add_executable(${PROJECT_NAME}.elf
 
 	src/remap/remap.c
 	src/remap/config.c
+
+	src/applist/applist.c
 )
 
 target_link_libraries(${PROJECT_NAME}.elf

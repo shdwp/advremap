@@ -3,11 +3,7 @@
 
 #include <stdio.h>
 #include "remap.h"
-
-typedef struct application {
-    char *name;
-    char *id;
-} application_t;
+#include "../applist/applist.h"
 
 #define CONFIG_APP_PATH_SIZE 256
 #define CONFIG_PLUGIN_PATH "app0:advremap.suprx"
