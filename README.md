@@ -29,10 +29,12 @@ Project use source code from following repositories:
 
 * [VitaShell][]
 * [vita-savemgr][]
+* [oclockvita][]
 * [rinCheat][]
 
 Special thanks to #vitasdk and Scorpeg's [ButtonSwap](https://github.com/Scorpeg/Button-Swap)
 
+[oclockvita]: https://github.com/frangarcj/oclockvita
 [VitaShell]: https://github.com/TheOfficialFloW/VitaShell
 [vita-savemgr]: https://github.com/d3m3vilurr/vita-savemgr
 [rinCheat]: https://github.com/Rinnegatamante/rinCheat
