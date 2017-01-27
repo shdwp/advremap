@@ -128,6 +128,7 @@ int ui_action_menu(action_list_t *actions) {
   char *alert_text = "Hold the buttons to replace with\nuntil this message dissapear.\nDont touch anything to cancel.";
   return display_alert(
       alert_text,
+      make_geom_centered(400, 200),
       NULL,
       0,
       &ui_action_menu_loop,
@@ -164,6 +165,7 @@ int ui_trigger_menu(trigger_t *trigger) {
   char *alert_text = "Press the button which\nwill be replaced.";
   return display_alert(
       alert_text,
+      make_geom_centered(400, 200),
       NULL,
       0,
       &ui_trigger_menu_loop,
@@ -230,6 +232,40 @@ int ui_app_menu_back(void *context) {
   config_save(path, config);
   config_binary_install(binary_path);
   config_binary_save(binary_path, path);
+
+  int taihen_append_result = config_taihen_append(*app);
+  char *alert_text;
+  if (taihen_append_result  == 1) {
+    alert_text = "Plugin was not enabled previously, so:\n\
+1. start moleculeShell\n\
+2. open ux0:tai/config.txt\n\
+3. uncomment two last lines (remove #)\n\
+4. save the file\n\
+5. press Start and select\n \"Reload taiHEN config.txt\"\n\
+\n\
+After this you may start the game!";
+  } else if (taihen_append_result == 2) {
+    alert_text = "Configuration was updated, but not enabled:\n\
+1. start moleculeShell\n\
+2. open ux0:tai/config.txt\n\
+3. uncomment two last lines (remove #)\n\
+4. save the file\n\
+5. press Start and select\n \"Reload taiHEN config.txt\"\n\
+\n\
+After this you may start the game!";
+  }
+
+  if (taihen_append_result > 0) {
+    display_alert(
+        alert_text,
+        make_geom_centered(500, HEIGHT - 230),
+        NULL,
+        1,
+        NULL,
+        NULL
+        );
+  }
+
   return GUI_EXIT;
 }
 

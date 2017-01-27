@@ -15,6 +15,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 
 include_directories(
+  ../src/
 )
 
 link_directories(
@@ -26,14 +27,15 @@ if (NOT ${RELEASE})
 endif()
 
 add_executable(advremap
-  main.c
-  font.c
-  blit.c
+  src/main.c
+  src/font.c
+  src/blit.c
+
   ../src/remap/remap.c
   ../src/remap/config.c
 )
 
-add_definitions( -DPLUGIN=1 )
+add_definitions( -DPLUGIN=1)
 
 target_link_libraries(advremap
   taihen_stub
@@ -56,7 +58,7 @@ vita_create_self(advremap.suprx advremap
 )
 
 add_custom_target(debug_send
-  COMMAND dd if=../debug_config of=advremap.suprx bs=1 seek=70324 conv=notrunc
+  COMMAND dd if=../resources/debug_config of=advremap.suprx bs=1 seek=70324 conv=notrunc
   COMMAND curl -T advremap.suprx ftp://$(PSVITAIP):1337/ux0:/tai/advremap/debug.suprx
   DEPENDS advremap.suprx
 )

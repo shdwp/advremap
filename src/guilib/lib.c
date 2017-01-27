@@ -427,10 +427,9 @@ int display_menu(
 }
 
 
-int display_alert(char *message, char *button_captions[], int buttons_count, gui_loop_callback cb, void *context) {
+int display_alert(char *message, struct menu_geom alert_geom, char *button_captions[], int buttons_count, gui_loop_callback cb, void *context) {
   gui_ctrl_end();
 
-  struct menu_geom alert_geom = make_geom_centered(400, 200);
   while (true) {
     vita2d_start_drawing();
     vita2d_clear_screen();
@@ -474,7 +473,8 @@ void display_error(char *format, ...) {
   va_list opt;
   va_start(opt, format);
   vsnprintf(buf, sizeof(buf), format, opt);
-  display_alert(buf, NULL, 1, NULL, NULL);
+  struct menu_geom alert_geom = make_geom_centered(400, 200);
+  display_alert(buf, alert_geom, NULL, 1, NULL, NULL);
   va_end(opt);
 }
 

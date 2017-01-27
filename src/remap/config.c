@@ -142,8 +142,51 @@ int config_binary_install(char *path) {
     FILE *out = fopen(path, "w");
     fwrite(buf, size, 1, out);
     fclose(out);
+    free(buf);
 
     return 0;
+}
+
+int config_taihen_append(application_t app) {
+    FILE *f = fopen(CONFIG_TAIHEN_PATH, "r");
+
+    char app_line[256];
+    sprintf(app_line, "ux0:tai/advremap/%s.suprx", app.id);
+
+    char current_line[192];
+    while (true) {
+        char current_char;
+        int i = 0;
+        int len = 0;
+        while ((len = fread(&current_char, sizeof(char), 1, f)) > 0) {
+            if (current_char == '\n') {
+                break;
+            }
+
+            current_line[i++] = current_char;
+        }
+
+        current_line[i] = '\0';
+        if (strcmp(current_line, app_line) == 0) {
+            return 0;
+        }
+
+        if (strcmp(current_line+1, app_line) == 0) {
+            return 2;
+        }
+
+        if (len <= 0) {
+            break;
+        }
+    }
+
+    fclose(f);
+
+    f = fopen(CONFIG_TAIHEN_PATH, "a");
+    fprintf(f, "\n#*%s\n#%s\n", app.id, app_line);
+    fclose(f);
+
+    return 1;
 }
 
 int config_default(remap_config_t *config) {

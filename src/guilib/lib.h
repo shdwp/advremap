@@ -61,6 +61,7 @@ int display_menu(
 
 int display_alert(
         char *message,
+        struct menu_geom alert_geom,
         char *button_captions[],
         int buttons_count,
         gui_loop_callback cb,

@@ -11,6 +11,7 @@ typedef struct application {
 
 #define CONFIG_APP_PATH_SIZE 256
 #define CONFIG_PLUGIN_PATH "app0:advremap.suprx"
+#define CONFIG_TAIHEN_PATH "ux0:tai/config.txt"
 
 #define CONFIG_MEM_MAX_SIZE 4096
 #define CONFIG_MEM_OFFSET 70324
@@ -26,6 +27,8 @@ int config_binary_save(char *binary_path, char *config_path);
 int config_binary_install(char *name);
 
 int config_default(remap_config_t *config);
+
+int config_taihen_append(application_t app);
 
 void config_append_remap(remap_config_t *config);
 void config_remove_remap(remap_config_t *config, int n);

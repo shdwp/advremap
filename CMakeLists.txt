@@ -13,7 +13,7 @@ project(advremap)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 set(TITLE "advremap")
 set(TITLE_ID "SHDW00001")
-set(VERSION "01.00")
+set(VERSION "00.10")
 
 #set(CMAKE_C_FLAGS "-Wl,-q -O3 -g -std=c99 -Dntohs=__builtin_bswap16 -Dhtons=__builtin_bswap16 -Dntohl=__builtin_bswap32 -Dhtonl=__builtin_bswap32 -DENET_DEBUG=1")
 
