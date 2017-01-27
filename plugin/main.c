@@ -5,12 +5,15 @@
 #include <psp2/apputil.h>
 #include <psp2/io/dirent.h>
 #include <psp2/sysmodule.h>
+#include <psp2/rtc.h>
 
 #include "../src/remap/remap.h"
 #include "../src/remap/config.h"
 
+#include "blit.h"
+
 // meta
-#define HOOKS_COUNT 6
+#define HOOKS_COUNT 7
 static SceUID g_hooks[HOOKS_COUNT];
 static tai_hook_ref_t tai_hook[HOOKS_COUNT];
 #define CtrlBufferWrapper(n) static int tai_wrapper_##n(int p, SceCtrlData *ctrl, int c) { return ctrl_buffer_wrapper(p, tai_hook[n], ctrl, c); }
@@ -21,6 +24,9 @@ CtrlBufferWrapper(2)
 CtrlBufferWrapper(3)
 CtrlTouchWrapper(4)
 CtrlTouchWrapper(5)
+
+static int tai_wrapper_6(const SceDisplayFrameBuf *pParam, int sync) { return framebuf_set(tai_hook[6], pParam, sync); }
+
 void _start() __attribute__ ((weak, alias ("module_start")));
 
 /*
@@ -32,6 +38,7 @@ void _start() __attribute__ ((weak, alias ("module_start")));
 */
 
 // remap
+static int display_notice_iterations;
 static remap_config_t remap_config;
 
 int ctrl_buffer_wrapper(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count) {
@@ -73,6 +80,17 @@ int ctrl_touch_wrapper(int port, tai_hook_ref_t ref_hook, SceTouchData *data, in
 
     return ret;
   }
+}
+
+int framebuf_set(tai_hook_ref_t ref_hook, const SceDisplayFrameBuf *pParam, int sync) {
+  display_notice_iterations++;
+  if (display_notice_iterations < 200) {
+    blit_set_frame_buf(pParam);
+    blit_set_color(0x00ff00ff, 0x00101010);
+    blit_stringf(100, 100, ":: advremap loaded, config size %d", remap_config.size);
+  }
+
+  return TAI_CONTINUE(int, ref_hook, pParam, sync);
 }
 
 char mem_config[CONFIG_MEM_MAX_SIZE] = "ADVREMAP_IM_A_LOUSY_PROGRAMMER";
@@ -117,6 +135,12 @@ int module_start(SceSize argc, const void *args) {
       TAI_ANY_LIBRARY,
       0x169A1D58, // sceCtrlTouchRead
       tai_wrapper_5);
+
+  g_hooks[++i] = taiHookFunctionImport(&tai_hook[i],
+      TAI_MAIN_MODULE,
+      TAI_ANY_LIBRARY,
+      0x7A410B64, // sceDisplaySetFrameBuf
+      tai_wrapper_6);
 
   return SCE_KERNEL_START_SUCCESS;
 }

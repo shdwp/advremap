@@ -228,7 +228,8 @@ int ui_app_menu_back(void *context) {
   config_binary_path(*app, &binary_path);
 
   config_save(path, config);
-  config_mem_save(binary_path, path);
+  config_binary_install(binary_path);
+  config_binary_save(binary_path, path);
   return GUI_EXIT;
 }
 

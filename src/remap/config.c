@@ -11,6 +11,41 @@
 
 #define CONFIG_VERSION 1
 
+int config_mem_load(void *ptr, remap_config_t *result) {
+    VOID_FOPEN();
+
+    int version = 0;
+    VOID_FREAD_INTO(int, version, ptr);
+    if (version != CONFIG_VERSION) {
+        return -1;
+    }
+
+    // read deadzones
+    VOID_FREAD_INTO(int, result->rs_deadzone, ptr);
+    VOID_FREAD_INTO(int, result->ls_deadzone, ptr);
+    VOID_FREAD_INTO(int, result->back_touch_deadzone_vertical, ptr);
+    VOID_FREAD_INTO(int, result->back_touch_deadzone_horizontal, ptr);
+    VOID_FREAD_INTO(int, result->front_touch_deadzone_vertical, ptr);
+    VOID_FREAD_INTO(int, result->front_touch_deadzone_horizontal, ptr);
+
+    VOID_FREAD_INTO(int, result->size, ptr);
+    result->triggers = malloc(sizeof(trigger_t) * result->size);
+    VOID_FREAD(trigger_t, result->triggers, sizeof(trigger_t) * result->size, ptr);
+
+    // read actions
+    result->actions = malloc(sizeof(action_list_t) * result->size);
+    for (int i = 0; i < result->size; i++) {
+        VOID_FREAD_INTO(int, result->actions[i].size, ptr);
+        result->actions[i].list = malloc(sizeof(action_t) * result->actions[i].size);
+
+        VOID_FREAD(action_t, result->actions[i].list, sizeof(action_t) * result->actions[i].size, ptr);
+    }
+
+    return 0;
+}
+
+#ifndef PLUGIN
+
 void config_path(application_t app, char path[CONFIG_APP_PATH_SIZE]) {
     sprintf(path, "ux0:data/advremap/%s", app.id);
 }
@@ -80,51 +115,33 @@ int config_save(char *path, remap_config_t config) {
     return 0;
 }
 
-int config_mem_save(char *binary_path, char *config_path) {
+int config_binary_save(char *binary_path, char *config_path) {
     void *config_mem = malloc(CONFIG_MEM_MAX_SIZE);
     FILE *config_file = fopen(config_path, "r");
     fread(config_mem, CONFIG_MEM_MAX_SIZE, 1, config_file);
     fclose(config_file);
 
     // it looks like fseek doesn't work, so we use sceIo here
-    FILE *binary_file = sceIoOpen(binary_path, SCE_O_WRONLY, 0777);
+    SceUID binary_file = sceIoOpen(binary_path, SCE_O_WRONLY, 0777);
     sceIoLseek(binary_file, CONFIG_MEM_OFFSET, SCE_SEEK_SET);
     sceIoWrite(binary_file, config_mem, CONFIG_MEM_MAX_SIZE);
 
     sceIoClose(binary_file);
 
+    free(config_mem);
     return 0;
 }
 
-int config_mem_load(void *ptr, remap_config_t *result) {
-    VOID_FOPEN();
+int config_binary_install(char *path) {
+    void *buf = malloc(1024 * 1024);
 
-    int version = 0;
-    VOID_FREAD_INTO(int, version, ptr);
-    if (version != CONFIG_VERSION) {
-        return -1;
-    }
+    SceUID f = sceIoOpen(CONFIG_PLUGIN_PATH, SCE_O_RDONLY, 0777);
+    int size = sceIoRead(f, buf, 1024 * 1024);
+    sceIoClose(f);
 
-    // read deadzones
-    VOID_FREAD_INTO(int, result->rs_deadzone, ptr);
-    VOID_FREAD_INTO(int, result->ls_deadzone, ptr);
-    VOID_FREAD_INTO(int, result->back_touch_deadzone_vertical, ptr);
-    VOID_FREAD_INTO(int, result->back_touch_deadzone_horizontal, ptr);
-    VOID_FREAD_INTO(int, result->front_touch_deadzone_vertical, ptr);
-    VOID_FREAD_INTO(int, result->front_touch_deadzone_horizontal, ptr);
-
-    VOID_FREAD_INTO(int, result->size, ptr);
-    result->triggers = malloc(sizeof(trigger_t) * result->size);
-    VOID_FREAD(trigger_t, result->triggers, sizeof(trigger_t) * result->size, ptr);
-
-    // read actions
-    result->actions = malloc(sizeof(action_list_t) * result->size);
-    for (int i = 0; i < result->size; i++) {
-        VOID_FREAD_INTO(int, result->actions[i].size, ptr);
-        result->actions[i].list = malloc(sizeof(action_t) * result->actions[i].size);
-
-        VOID_FREAD(action_t, result->actions[i].list, sizeof(action_t) * result->actions[i].size, ptr);
-    }
+    FILE *out = fopen(path, "w");
+    fwrite(buf, size, 1, out);
+    fclose(out);
 
     return 0;
 }
@@ -165,3 +182,5 @@ void config_remove_remap(remap_config_t *config, int n) {
     config->triggers = realloc(config->triggers, sizeof(trigger_t) * config->size);
     config->actions = realloc(config->actions, sizeof(action_list_t) * config->size);
 }
+
+#endif
