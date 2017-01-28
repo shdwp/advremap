@@ -2,18 +2,30 @@ PS Vita homebrew for remapping controls.
 
 ## Features
 
-* Remap any button, sticks (4 directions), back touchscreen (4 virtual buttons)
+* Remap any button, sticks (_4 directions_), back touchscreen (_4 virtual buttons_)
 * Remap single button to button combination
-* Configure front and back touchscreen, left and right stick deadzones
+* Configure touchscreen and analog sticks deadzone
 * GUI
 
+## Usage
+
+1. Select application for remapping
+1. Hit __Triangle__ to add new item
+1. Press the __trigger__ (button, stick or back touchscreen zone which will be replaced)
+1. Hold the __actions__ (the buttons which will replace the trigger) until the message dissapear
+1. Press __Circle__ to save configuration
+1. If you haven't enabled the plugin for this application previously:
+    1. Go to __molecularShell__, open `ux0:tai/config.txt`
+    1. The two last lines will be commented out, uncomment them (remove #)
+    1. Save the file, open __Start__ menu and hit `Reload taiHEN's config.txt`
+
 ## Troubleshoot
-* Plugin doesn't work:
-  * Pirated games not supported
+* "_Plugin doesn't work_":
+  * Dumped games not supported
   * If the notice message doesn't appear in the game: make sure that you've edited taiHEN's `config.txt` and reloaded it trough `molecularShell`
   * Other way the game may be unsupported
 
-* Config not saved
+* "_Config not saving_":
   * Make sure that you've added at least 1 button
 
 ## License
