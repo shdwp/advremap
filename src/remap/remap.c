@@ -329,6 +329,10 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
 
     SceCtrlData pad;
     memcpy(&pad, mut_pad, sizeof(pad));
+    SceTouchData front, back;
+    memcpy(&front, mut_front, sizeof(front));
+    memcpy(&back, mut_back, sizeof(back));
+
     int spawned_buttons[TRIGGERS_BUTTONS_COUNT];
     int spawned_buttons_i = 0;
 
@@ -336,7 +340,7 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
         trigger_t trigger = config.triggers[i];
 
         int type = trigger_type(trigger);
-        int trigger_test = remap_test_trigger(trigger, pad, *mut_front, *mut_back);
+        int trigger_test = remap_test_trigger(trigger, pad, front, back);
         if (trigger_test >= 0) {
             // prevent
             bool should_prevent = true;
