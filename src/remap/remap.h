@@ -29,6 +29,8 @@ typedef enum trigger {
     CTRL_CROSS       = 0x004000,        //!< Cross button.
     CTRL_SQUARE      = 0x008000,        //!< Square button.
 
+    RIGHT_TRIGGER = 0x20000,
+    LEFT_TRIGGER,
 
     RS_UP = 0x500000,
     RS_DOWN,
@@ -60,6 +62,7 @@ typedef enum {
     ACTION_BACKTOUCHSCREEN,
     ACTION_RS,
     ACTION_LS,
+    ACTION_TRIGGER,
 } action_type_t;
 
 typedef struct {
