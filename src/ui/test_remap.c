@@ -80,7 +80,7 @@ void draw_touch_at(SceTouchData touch, int x, int y) {
 
 void ui_test_remap_draw() {
     SceCtrlData pad;
-    sceCtrlPeekBufferPositive(0, &pad, 1);
+    sceCtrlPeekBufferPositive( sceKernelGetModelForCDialog() == SCE_KERNEL_MODEL_VITATV ? 1 : 0, &pad, 1);
 
     SceTouchData front;
     sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
