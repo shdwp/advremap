@@ -25,6 +25,7 @@ int config_mem_load(void *ptr, remap_config_t *result) {
     VOID_FREAD_INTO(int, result->back_touch_deadzone_horizontal, ptr);
     VOID_FREAD_INTO(int, result->front_touch_deadzone_vertical, ptr);
     VOID_FREAD_INTO(int, result->front_touch_deadzone_horizontal, ptr);
+    VOID_FREAD_INTO(int, result->triggers_deadzone, ptr);
 
     VOID_FREAD_INTO(int, result->size, ptr);
     result->triggers = malloc(sizeof(trigger_t) * result->size);
@@ -71,6 +72,7 @@ int config_load(char *path, remap_config_t *result) {
     FREAD_INTO(result->back_touch_deadzone_horizontal, file);
     FREAD_INTO(result->front_touch_deadzone_vertical, file);
     FREAD_INTO(result->front_touch_deadzone_horizontal, file);
+    FREAD_INTO(result->triggers_deadzone, file);
 
     // read triggers
     FREAD_INTO(result->size, file);
@@ -100,6 +102,7 @@ int config_save(char *path, remap_config_t config) {
     FWRITE_FROM(config.back_touch_deadzone_horizontal, file);
     FWRITE_FROM(config.front_touch_deadzone_vertical, file);
     FWRITE_FROM(config.front_touch_deadzone_horizontal, file);
+    FWRITE_FROM(config.triggers_deadzone, file);
 
     FWRITE_FROM(config.size, file);
     fwrite(config.triggers, sizeof(trigger_t), config.size, file);

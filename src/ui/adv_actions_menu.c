@@ -1,13 +1,11 @@
 #include "main_menu.h"
 
-#include "test_remap.h"
-
 #define MENU_RELOAD 2
 
 #define FRONT_TOUCHSCREEN 0x600000
 #define BACK_TOUCHSCREEN 0x600001
 
-#define ACTION_VARIANTS_SIZE 21
+#define ACTION_VARIANTS_SIZE 24
 static int action_variants[] = {
     CTRL_SELECT,
     CTRL_START,
@@ -15,8 +13,8 @@ static int action_variants[] = {
     CTRL_RIGHT,
     CTRL_DOWN,
     CTRL_LEFT,
-    CTRL_LTRIGGER,
-    CTRL_RTRIGGER,
+    CTRL_L1,
+    CTRL_R1,
     CTRL_TRIANGLE,
     CTRL_CIRCLE,
     CTRL_CROSS,
@@ -32,6 +30,9 @@ static int action_variants[] = {
     LS_LEFT,
     LS_RIGHT,
 
+    LEFT_TRIGGER,
+    RIGHT_TRIGGER,
+
     FRONT_TOUCHSCREEN,
     BACK_TOUCHSCREEN,
 };
@@ -42,9 +43,16 @@ int ui_new_action_menu_loop(int cursor_id, void *context) {
         switch (cursor_id) {
             case FRONT_TOUCHSCREEN:
             case BACK_TOUCHSCREEN:
-                new_action = make_touch_action(100, 100, cursor_id == FRONT_TOUCHSCREEN ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK);
-                break;
+                if (true) {
+                    int x, y;
+                    char coordinates[1024];
+                    ime_dialog(coordinates, "Enter X,Y (separated by ,)", "0,0");
+                    sscanf(coordinates, "%d,%d", &x, &y);
 
+                    x = ((float) x / WIDTH) * 1919;
+                    y = ((float) y / HEIGHT) * 1087;
+                    new_action = make_touch_action(x, y, cursor_id == FRONT_TOUCHSCREEN ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK);
+                } break;
             case RS_UP:
             case RS_DOWN:
             case RS_LEFT:
@@ -70,6 +78,10 @@ int ui_new_action_menu_loop(int cursor_id, void *context) {
                         cursor_id == LS_DOWN ? 255 :
                         STICK_ZERO,
                         ACTION_LS);
+                break;
+            case RIGHT_TRIGGER:
+            case LEFT_TRIGGER:
+                new_action = make_trigger_action(cursor_id);
                 break;
             default:
                 new_action = make_button_action(cursor_id);
@@ -98,7 +110,7 @@ int ui_new_action_menu(action_list_t *actions) {
     for (int i = 0; i < ACTION_VARIANTS_SIZE; i++) {
         int variant = action_variants[i];
 
-        if (variant <= LS_RIGHT) {
+        if (variant <= TRIGGERS_LAST_TRANSIENT) {
             remap_config_trigger_title(variant, names[i]);
         } else if (variant == FRONT_TOUCHSCREEN) {
             strcpy(names[i], "[  ]");
@@ -121,12 +133,12 @@ int ui_adv_actions_menu_loop(int cursor_id, void *context) {
             if (cursor_id == i) {
                 continue;
             } else {
-                actions->list[i] = actions->list[n++];
+                actions->list[n++] = actions->list[i];
             }
-
-            actions->size -= 1;
-            actions->list = realloc(actions->list, sizeof(action_t) * actions->size);
         }
+
+        actions->size -= 1;
+        actions->list = realloc(actions->list, sizeof(action_t) * actions->size);
 
         return MENU_RELOAD;
     }

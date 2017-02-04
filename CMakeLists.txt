@@ -40,6 +40,8 @@ add_executable(${PROJECT_NAME}.elf
 
 	src/main.c
 	src/guilib/lib.c
+	src/guilib/ime.c
+
 	src/ui/test_remap.c
 	src/ui/main_menu.c
 	src/ui/app_menu.c

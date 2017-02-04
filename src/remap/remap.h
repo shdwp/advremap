@@ -29,6 +29,8 @@ typedef enum trigger {
     CTRL_CROSS       = 0x004000,        //!< Cross button.
     CTRL_SQUARE      = 0x008000,        //!< Square button.
 
+    RIGHT_TRIGGER = 0x20000,
+    LEFT_TRIGGER,
 
     RS_UP = 0x500000,
     RS_DOWN,
@@ -50,9 +52,10 @@ typedef enum trigger {
 } trigger_t;
 
 extern int TRIGGERS[30];
+#define TRIGGERS_LAST_TRANSIENT LS_RIGHT
 #define TRIGGERS_COUNT 30
 #define TRIGGERS_BUTTONS_COUNT 16
-#define TRIGGERS_NOTOUCH_COUNT TRIGGERS_BUTTONS_COUNT + 8
+#define TRIGGERS_TRANSIENT_COUNT TRIGGERS_BUTTONS_COUNT + 8
 
 typedef enum {
     ACTION_BUTTON,
@@ -60,6 +63,7 @@ typedef enum {
     ACTION_BACKTOUCHSCREEN,
     ACTION_RS,
     ACTION_LS,
+    ACTION_TRIGGER,
 } action_type_t;
 
 typedef struct {
@@ -78,6 +82,7 @@ typedef struct {
     int rs_deadzone, ls_deadzone;
     int back_touch_deadzone_vertical, back_touch_deadzone_horizontal;
     int front_touch_deadzone_vertical, front_touch_deadzone_horizontal;
+    int triggers_deadzone;
 
     int size;
     trigger_t *triggers;
@@ -90,6 +95,7 @@ typedef struct {
 action_t make_button_action(int identifier);
 action_t make_touch_action(int x, int y, int port);
 action_t make_stick_action(int x, int y, int type);
+action_t make_trigger_action(int identifier);
 
 //
 

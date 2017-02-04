@@ -37,25 +37,25 @@ int TRIGGERS[] =  {
     TOUCHSCREEN_NE,
     TOUCHSCREEN_SW,
     TOUCHSCREEN_SE,
+
+    RIGHT_TRIGGER,
+    LEFT_TRIGGER,
 };
 
 // trigger
 enum TriggerType {
     TRIGGER_TYPE_BUTTON,
     TRIGGER_TYPE_TOUCH,
-    TRIGGER_TYPE_STICK
+    TRIGGER_TYPE_STICK,
+    TRIGGER_TYPE_TRIGGER
 };
 
 int trigger_type(trigger_t trigger) {
-    if (trigger <= CTRL_SQUARE) {
-        return TRIGGER_TYPE_BUTTON;
-    } else if (trigger <= TOUCHSCREEN_SE) {
-        return TRIGGER_TYPE_TOUCH;
-    } else if (trigger <= LS_RIGHT) {
-        return TRIGGER_TYPE_STICK;
-    }
-
-    return -1;
+    return 
+      trigger <= CTRL_SQUARE ? TRIGGER_TYPE_BUTTON :
+      trigger <= LEFT_TRIGGER ? TRIGGER_TYPE_TRIGGER :
+      trigger <= TOUCHSCREEN_SE ? TRIGGER_TYPE_TOUCH :
+      trigger <= LS_RIGHT ? TRIGGER_TYPE_STICK : -1;
 }
 
 // actionshortcuts
@@ -78,7 +78,14 @@ action_t make_stick_action(int x, int y, int type) {
     return (action_t) {
         .type = type,
         .x = x,
-        .y = y
+        .y = y,
+    };
+}
+
+action_t make_trigger_action(int identifier) {
+    return (action_t) {
+        .type = ACTION_TRIGGER,
+        .value = identifier,
     };
 }
 
@@ -114,7 +121,6 @@ int trigger_check_touch(trigger_t trigger, SceTouchData data) {
 
 bool trigger_check_stick(trigger_t trigger, SceCtrlData data) {
     int deadzone = TRIGGER_CHECK_STICK_DEADZONE;
-
     switch (trigger) {
         case RS_UP:
             return data.ry < STICK_ZERO - deadzone;
@@ -180,6 +186,17 @@ void cancel_stick(trigger_t trigger, SceCtrlData *mut_pad) {
     }
 }
 
+void cancel_trigger(trigger_t trigger, SceCtrlData *mut_pad) {
+  switch (trigger) {
+    case LEFT_TRIGGER:
+      mut_pad->lt = 0;
+      break;
+    case RIGHT_TRIGGER:
+      mut_pad->rt = 0;
+      break;
+  }
+}
+
 // spawn
 static int id = 0;
 void spawn_touch(int x, int y, SceTouchData *mut_data) {
@@ -205,6 +222,11 @@ int remap_test_trigger(trigger_t trigger, SceCtrlData pad, SceTouchData front, S
             return trigger_check_touch(trigger, back);
         case TRIGGER_TYPE_STICK:
             return trigger_check_stick(trigger, pad) ? 0 : -1;
+        case TRIGGER_TYPE_TRIGGER:
+            switch (trigger) {
+              case RIGHT_TRIGGER: return pad.rt > 0 ? 0 : -1;
+              case LEFT_TRIGGER: return pad.lt > 0 ? 0 : -1;
+            }
         default:
             return -1;
     }
@@ -240,6 +262,14 @@ void remap_deadzone_ignore(remap_config_t config, SceCtrlData *mut_pad, SceTouch
         cancel_stick(LS_ANY, mut_pad);
     }
 
+    if (mut_pad->lt < config.triggers_deadzone) {
+      mut_pad->lt = 0;
+    }
+
+    if (mut_pad->rt < config.triggers_deadzone) {
+      mut_pad->rt = 0;
+    }
+
     deadzone_ignore_touch(config.front_touch_deadzone_horizontal, config.front_touch_deadzone_vertical, mut_front);
     deadzone_ignore_touch(config.back_touch_deadzone_horizontal, config.back_touch_deadzone_vertical, mut_back);
 }
@@ -247,11 +277,9 @@ void remap_deadzone_ignore(remap_config_t config, SceCtrlData *mut_pad, SceTouch
 int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData front, SceTouchData back) {
     int actions_i = 0;
 
-    for (int i = 0; i < TRIGGERS_NOTOUCH_COUNT; i++) {
+    for (int i = 0; i < TRIGGERS_TRANSIENT_COUNT; i++) {
         if (remap_test_trigger(TRIGGERS[i], pad, front, back) >= 0) {
-
             int type = trigger_type(TRIGGERS[i]);
-            int stick_type = TRIGGERS[i] <= RS_RIGHT ? ACTION_RS : ACTION_LS;
 
             switch (type) {
                 case TRIGGER_TYPE_BUTTON:
@@ -259,6 +287,7 @@ int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData fro
                     break;
                 case TRIGGER_TYPE_STICK:
                     if (true) {
+                      int stick_type = TRIGGERS[i] <= RS_RIGHT ? ACTION_RS : ACTION_LS;
                         int x = stick_type == ACTION_RS ? pad.rx : pad.lx;
                         int y = stick_type == ACTION_RS ? pad.ry : pad.ly;
 
@@ -272,6 +301,9 @@ int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData fro
                                 );
                     }
 
+                    break;
+                case TRIGGER_TYPE_TRIGGER:
+                    actions->list[actions_i++] = make_trigger_action(TRIGGERS[i]);
                     break;
             }
         }
@@ -341,7 +373,6 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
         int type = trigger_type(trigger);
         int trigger_test = remap_test_trigger(trigger, pad, front, back);
         if (trigger_test >= 0) {
-            // prevent
             bool should_prevent = true;
             for (int n = 0; n < spawned_buttons_i; n++) {
                 if (spawned_buttons[n] == trigger) {
@@ -359,6 +390,9 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
                         break;
                     case TRIGGER_TYPE_STICK:
                         cancel_stick(trigger, mut_pad);
+                        break;
+                    case TRIGGER_TYPE_TRIGGER:
+                        cancel_trigger(trigger, mut_pad);
                         break;
                 }
             }
@@ -383,6 +417,12 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
                     case ACTION_LS:
                         stick_values_append(&mut_pad->lx, &mut_pad->ly, action.x, action.y);
                         break;
+                    case ACTION_TRIGGER:
+                        switch (action.value) {
+                          case RIGHT_TRIGGER: mut_pad->rt = 255; break;
+                          case LEFT_TRIGGER: mut_pad->lt = 255; break;
+                        }
+                        break;
                 }
 
             }
@@ -399,8 +439,10 @@ void remap_config_trigger_title(int id, char buf[TRIGGER_NAME_SIZE]) {
         case CTRL_RIGHT: trigger_name = "▶"; break;
         case CTRL_DOWN: trigger_name = "▼"; break;
         case CTRL_LEFT: trigger_name = "◀"; break;
-        case CTRL_LTRIGGER: trigger_name = "L◤"; break;
-        case CTRL_RTRIGGER: trigger_name = "◥R"; break;
+        case CTRL_L1: trigger_name = "L◤"; break;
+        case CTRL_R1: trigger_name = "◥R"; break;
+        case RIGHT_TRIGGER: trigger_name = "RT"; break;
+        case LEFT_TRIGGER: trigger_name = "LT"; break;
         case CTRL_TRIANGLE: trigger_name = "△"; break;
         case CTRL_CIRCLE: trigger_name = "◯"; break;
         case CTRL_CROSS: trigger_name = "╳"; break;
@@ -429,6 +471,7 @@ void remap_config_trigger_title(int id, char buf[TRIGGER_NAME_SIZE]) {
 bool remap_config_action_title(action_t action, char name[256]) {
     switch (action.type) {
       case ACTION_BUTTON:
+      case ACTION_TRIGGER:
         remap_config_trigger_title(action.value, name);
         return true;
       case ACTION_FRONTTOUCHSCREEN:

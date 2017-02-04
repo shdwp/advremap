@@ -29,6 +29,7 @@ int ui_deadzone_menu_loop(int cursor_id, void *context) {
             case 4: config.front_touch_deadzone_horizontal += delta; break;
             case 5: config.rs_deadzone += delta; break;
             case 6: config.ls_deadzone += delta; break;
+            case 7: config.triggers_deadzone += delta; break;
         }
 
         did_change = true;
@@ -42,7 +43,8 @@ int ui_deadzone_menu_loop(int cursor_id, void *context) {
             config.front_touch_deadzone_vertical,
             config.front_touch_deadzone_horizontal,
             config.rs_deadzone,
-            config.ls_deadzone
+            config.ls_deadzone,
+            config.triggers_deadzone,
         };
 
         for (int i = 0; i < sizeof(numbers) / sizeof(int); i++) {
@@ -60,14 +62,14 @@ void ui_deadzone_menu_draw(void *context) {
     SceTouchData front;
     SceTouchData back;
 
-    sceCtrlPeekBufferPositive(0, &pad, 1);
+    sceCtrlPeekBufferPositiveExt2(sceKernelGetModelForCDialog() == SCE_KERNEL_MODEL_VITATV ? 1 : 0, &pad, 1);
     sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
     sceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 
     remap_deadzone_ignore(config, &pad, &front, &back);
 
-    draw_touch_at(front, 300, 250);
-    draw_touch_at(back, 300, 370);
+    draw_touch_at(front, 300, 260);
+    draw_touch_at(back, 300, 380);
     draw_sticks_at(pad, 0, 370);
 }
 
@@ -76,7 +78,7 @@ int ui_deadzone_menu() {
     struct menu_entry menu[16];
     int idx = 0;
 
-    char subnames[6][128];
+    char subnames[7][128];
 
     menu[idx++] = (struct menu_entry) { .name = "Deadzones", .disabled = true, .separator = true, .color = 0xffaa00aa };
     menu[idx++] = (struct menu_entry) { .name = "Back touch vertical", .subname = subnames[0], .suffix = "←→", .id = 1  };
@@ -86,8 +88,9 @@ int ui_deadzone_menu() {
 
     menu[idx++] = (struct menu_entry) { .name = "RS deadzone", .subname = subnames[4], .suffix = "←→", .id = 5 };
     menu[idx++] = (struct menu_entry) { .name = "LS deadzone", .subname = subnames[5], .suffix = "←→", .id = 6 };
+    menu[idx++] = (struct menu_entry) { .name = "PSTV triggers deadzone", .subname = subnames[6], .suffix = "←→", .id = 7 };
 
-    struct menu_geom geom = make_geom_centered(400, 180);
+    struct menu_geom geom = make_geom_centered(400, 200);
     geom.y = 30;
     return display_menu(
             menu,
@@ -110,7 +113,7 @@ int ui_action_menu_loop(int cursor_id, void *context) {
         SceTouchData front;
         SceTouchData back;
 
-        sceCtrlPeekBufferPositive(0, &pad, 1);
+        sceCtrlPeekBufferPositiveExt2(sceKernelGetModelForCDialog() == SCE_KERNEL_MODEL_VITATV ? 1 : 0, &pad, 1);
         sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
         sceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 
@@ -147,7 +150,7 @@ int ui_trigger_menu_loop(int cursor_id, void *context) {
         SceTouchData front;
         SceTouchData back;
 
-        sceCtrlPeekBufferPositive(0, &pad, 1);
+        sceCtrlPeekBufferPositiveExt2(sceKernelGetModelForCDialog() == SCE_KERNEL_MODEL_VITATV ? 1 : 0, &pad, 1);
         sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
         sceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 
