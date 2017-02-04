@@ -218,8 +218,8 @@ int remap_test_trigger(trigger_t trigger, SceCtrlData pad, SceTouchData front, S
             return trigger_check_stick(trigger, pad) ? 0 : -1;
         case TRIGGER_TYPE_TRIGGER:
             switch (trigger) {
-              case RIGHT_TRIGGER: return pad.rt > 0;
-              case LEFT_TRIGGER: return pad.lt > 0;
+              case RIGHT_TRIGGER: return pad.rt > 0 ? 0 : -1;
+              case LEFT_TRIGGER: return pad.lt > 0 ? 0 : -1;
             }
         default:
             return -1;
