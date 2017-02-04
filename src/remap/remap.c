@@ -37,6 +37,9 @@ int TRIGGERS[] =  {
     TOUCHSCREEN_NE,
     TOUCHSCREEN_SW,
     TOUCHSCREEN_SE,
+
+    RIGHT_TRIGGER,
+    LEFT_TRIGGER,
 };
 
 // trigger

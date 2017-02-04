@@ -10,7 +10,7 @@
 #define CONFIG_TAIHEN_PATH "ux0:tai/config.txt"
 
 #define CONFIG_MEM_MAX_SIZE 4096
-#define CONFIG_MEM_OFFSET 70324
+#define CONFIG_MEM_OFFSET 70332
 
 void config_path(application_t app, char path[CONFIG_APP_PATH_SIZE]);
 void config_binary_path(application_t app, char path[CONFIG_APP_PATH_SIZE]);

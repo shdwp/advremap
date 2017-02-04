@@ -47,6 +47,13 @@ void draw_pad_at(SceCtrlData pad, int x, int y) {
         vita2d_pgf_draw_text(gui_font, pos[i][0]+x, pos[i][1]+y, color, 1.0f, chars[i]);
     }
 
+    char rt[256], lt[256];
+    sprintf(rt, "%d", pad.rt);
+    sprintf(lt, "%d", pad.lt);
+
+    vita2d_pgf_draw_text(gui_font, l+x, 40 - 30 + y, active_color, 1.0f, lt);
+    vita2d_pgf_draw_text(gui_font, r+x, 40 - 30 + y, active_color, 1.0f, rt);
+
     vita2d_pgf_draw_text(gui_font, l+x, 40+y, pad.lt > 0 ? active_color : inactive_color, 1.0f, "L");
     vita2d_pgf_draw_text(gui_font, r+x, 40+y, pad.rt > 0 ? active_color : inactive_color, 1.0f, "R");
 }
@@ -82,8 +89,8 @@ void ui_test_remap_draw() {
 
     remap(remap_config, &pad, &front, &back);
 
-    draw_touch_at(front, 300, 90);
-    draw_touch_at(back, 300, 200);
+    draw_touch_at(front, 300, 70);
+    draw_touch_at(back, 300, 180);
     draw_pad_at(pad, 0, 300);
     draw_sticks_at(pad, 0, 300);
 }
@@ -110,7 +117,7 @@ int ui_test_remap(remap_config_t config) {
 
   struct menu_geom geom = make_geom_centered(300, 36);
   geom.x = 50;
-  geom.y = 50;
+  geom.y = 30;
   geom.statusbar = false;
   return display_menu(menu, idx, &geom, &ui_test_remap_loop, &ui_test_remap_back, &ui_test_remap_draw, NO_GUIDE, NULL);
 }
