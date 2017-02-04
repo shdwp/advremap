@@ -110,7 +110,6 @@ int trigger_check_touch(trigger_t trigger, SceTouchData data) {
     return -1;
 }
 
-#define STICK_ZERO 255 / 2
 #define TRIGGER_CHECK_STICK_DEADZONE 70
 
 bool trigger_check_stick(trigger_t trigger, SceCtrlData data) {
@@ -303,7 +302,7 @@ int remap_read_trigger(trigger_t *trigger, SceCtrlData pad, SceTouchData front, 
     return -1;
 }
 
-void stick_values_append(char *x, char *y, int dx, int dy) {
+void stick_values_append(unsigned char *x, unsigned char *y, int dx, int dy) {
     int overflow = *x;
     if (overflow + dx >= 255) {
         *x = 255;
@@ -391,7 +390,7 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
     }
 }
 
-void remap_trigger_name(int id, char buf[TRIGGER_NAME_SIZE]) {
+void remap_config_trigger_title(int id, char buf[TRIGGER_NAME_SIZE]) {
     char *trigger_name = NULL;
     switch (id) {
         case CTRL_SELECT: trigger_name = "Select"; break;
@@ -420,14 +419,38 @@ void remap_trigger_name(int id, char buf[TRIGGER_NAME_SIZE]) {
         case LS_DOWN: trigger_name = "LS▼"; break;
         case LS_LEFT: trigger_name = "LS◀"; break;
         case LS_RIGHT: trigger_name = "LS▶"; break;
+
+        default: trigger_name = "UNKNOWN"; break;
     }
 
     strcpy(buf, trigger_name);
 }
 
-void remap_config_action_name(remap_config_t config, int n, char buf[ACTION_NAME_SIZE]) {
+bool remap_config_action_title(action_t action, char name[256]) {
+    switch (action.type) {
+      case ACTION_BUTTON:
+        remap_config_trigger_title(action.value, name);
+        return true;
+      case ACTION_FRONTTOUCHSCREEN:
+        strcpy(name, "[  ]");
+        return true;
+      case ACTION_BACKTOUCHSCREEN:
+        strcpy(name, "⊂⊃");
+        return true;
+      case ACTION_RS:
+        strcpy(name, "RS");
+        return true;
+      case ACTION_LS:
+        strcpy(name, "LS");
+        return true;
+      default:
+        return false;
+    }
+}
+
+void remap_config_pair_title(remap_config_t config, int n, char buf[ACTION_NAME_SIZE]) {
     char trigger_name[256];
-    remap_trigger_name(config.triggers[n], trigger_name);
+    remap_config_trigger_title(config.triggers[n], trigger_name);
 
     sprintf(buf, "%s -> ", trigger_name);
     for (int i = 0; i < config.actions[n].size; i++) {
@@ -437,32 +460,9 @@ void remap_config_action_name(remap_config_t config, int n, char buf[ACTION_NAME
         }
 
         action_t action = config.actions[n].list[i];
-        char name[256];
-        bool name_set = false;
-        switch (action.type) {
-            case ACTION_BUTTON:
-                name_set = true;
-                remap_trigger_name(action.value, name);
-                break;
-            case ACTION_FRONTTOUCHSCREEN:
-                name_set = true;
-                strcpy(name, "[  ]");
-                break;
-            case ACTION_BACKTOUCHSCREEN:
-                name_set = true;
-                strcpy(name, "⊂⊃");
-                break;
-            case ACTION_RS:
-                name_set = true;
-                strcpy(name, "RS");
-                break;
-            case ACTION_LS:
-                name_set = true;
-                strcpy(name, "LS");
-                break;
-        }
 
-        if (name_set) {
+        char name[256];
+        if (remap_config_action_title(config.actions[n].list[i], name)) {
             sprintf(buf, "%s %s", buf, name);
         }
     }

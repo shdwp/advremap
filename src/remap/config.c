@@ -9,8 +9,6 @@
 #define VOID_FREAD_INTO(type, into, ptr) into = *((type *) (ptr + v_offset)); v_offset += sizeof(type);
 #define VOID_FREAD(type, into, size, ptr) into = ((type *) (ptr + v_offset)); v_offset += size;
 
-#define CONFIG_VERSION 1
-
 int config_mem_load(void *ptr, remap_config_t *result) {
     VOID_FOPEN();
 

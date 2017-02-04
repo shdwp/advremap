@@ -70,6 +70,7 @@ typedef struct {
 
 typedef struct {
     int size;
+    int index;
     action_t *list;
 } action_list_t;
 
@@ -85,6 +86,11 @@ typedef struct {
 
 #define REMAP_MAX_ACTIONS 24
 
+#define STICK_ZERO 255 / 2
+action_t make_button_action(int identifier);
+action_t make_touch_action(int x, int y, int port);
+action_t make_stick_action(int x, int y, int type);
+
 //
 
 void remap_deadzone_ignore(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back);
@@ -95,8 +101,9 @@ int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData fro
 
 #define TRIGGER_NAME_SIZE 256
 #define ACTION_NAME_SIZE 1024
-void remap_trigger_name(int id, char buf[TRIGGER_NAME_SIZE]);
-void remap_config_action_name(remap_config_t config, int i, char buf[ACTION_NAME_SIZE]);
+void remap_config_trigger_title(int id, char buf[TRIGGER_NAME_SIZE]);
+bool remap_config_action_title(action_t action, char name[256]);
+void remap_config_pair_title(remap_config_t config, int n, char buf[ACTION_NAME_SIZE]);
 
 #include "config.h"
 
