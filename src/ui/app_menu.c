@@ -68,9 +68,15 @@ void ui_deadzone_menu_draw(void *context) {
 
     remap_deadzone_ignore(config, &pad, &front, &back);
 
-    draw_touch_at(front, 300, 260);
+    draw_touch_at(front, 300, 265);
     draw_touch_at(back, 300, 380);
     draw_sticks_at(pad, 0, 370);
+
+    int active_color = 0xffff00ff, inactive_color = 0xaaffffff;
+    int rt_percent = (float) pad.rt / 255;
+    int lt_percent = (float) pad.lt / 255;
+    vita2d_draw_rectangle(WIDTH/3 + 40, 470 + 40 - 20, 20, 2 + 15 * lt_percent, pad.lt > config.triggers_deadzone ? active_color : inactive_color);
+    vita2d_draw_rectangle(WIDTH - WIDTH/3 - 60, 470 + 40 - 20, 20, 2 + 15 * rt_percent, pad.rt > config.triggers_deadzone ? active_color : inactive_color);
 }
 
 int ui_deadzone_menu() {
@@ -90,7 +96,7 @@ int ui_deadzone_menu() {
     menu[idx++] = (struct menu_entry) { .name = "LS deadzone", .subname = subnames[5], .suffix = "←→", .id = 6 };
     menu[idx++] = (struct menu_entry) { .name = "PSTV triggers deadzone", .subname = subnames[6], .suffix = "←→", .id = 7 };
 
-    struct menu_geom geom = make_geom_centered(400, 200);
+    struct menu_geom geom = make_geom_centered(400, 210);
     geom.y = 30;
     return display_menu(
             menu,
@@ -293,7 +299,7 @@ int ui_app_menu(application_t app) {
         struct menu_entry menu[16 + config.size];
         int idx = 0;
 
-        menu[idx++] = (struct menu_entry) { .name = path, .subname = "", .disabled = true, .separator = true, .color = 0xffaa00aa };
+        menu[idx++] = (struct menu_entry) { .name = "", .subname = path, .disabled = true, .color = 0xffaa00aa };
         menu[idx++] = (struct menu_entry) { .name = "Test remap", .id = APP_MENU_TEST_REMAP };
 
         menu[idx++] = (struct menu_entry) { .name = "Configure deadzones", .id = APP_MENU_DEADZONES };

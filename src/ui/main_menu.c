@@ -23,12 +23,10 @@ int ui_main_menu() {
   int idx = 0;
 
   menu[idx++] = (struct menu_entry) { .name = "", .subname = "Advanced Button Remap", .disabled = true, .color = 0xffaa00aa };
+  menu[idx++] = (struct menu_entry) { .name = "Select game:", .disabled = true, .separator = true };
   for (int i = 0; i < list.size; i++) {
     menu[idx++] = (struct menu_entry) { .name = list.items[i].name, .id = i, };
   }
-
-  menu[idx++] = (struct menu_entry) { .name = "", .disabled = true, .separator = true };
-  menu[idx++] = (struct menu_entry) { .name = "Quit" };
 
   struct menu_geom geom = make_geom_centered(600, 400);
   return display_menu(menu, idx, &geom, &ui_main_menu_loop, &ui_main_menu_back, NULL, DEFAULT_GUIDE, &list);

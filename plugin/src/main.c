@@ -13,7 +13,7 @@
 #include "blit.h"
 
 // meta
-#define HOOKS_COUNT 7
+#define HOOKS_COUNT 10
 static SceUID g_hooks[HOOKS_COUNT];
 static tai_hook_ref_t tai_hook[HOOKS_COUNT];
 #define CtrlBufferWrapper(n) static int tai_wrapper_##n(int p, SceCtrlData *ctrl, int c) { return ctrl_buffer_wrapper(p, tai_hook[n], ctrl, c); }
@@ -22,8 +22,13 @@ CtrlBufferWrapper(0)
 CtrlBufferWrapper(1)
 CtrlBufferWrapper(2)
 CtrlBufferWrapper(3)
+
 CtrlTouchWrapper(4)
 CtrlTouchWrapper(5)
+
+CtrlBufferWrapper(7)
+CtrlBufferWrapper(8)
+CtrlBufferWrapper(9)
 
 static int tai_wrapper_6(const SceDisplayFrameBuf *pParam, int sync) { return framebuf_set(tai_hook[6], pParam, sync); }
 
@@ -141,6 +146,24 @@ int module_start(SceSize argc, const void *args) {
       TAI_ANY_LIBRARY,
       0x7A410B64, // sceDisplaySetFrameBuf
       tai_wrapper_6);
+
+  g_hooks[++i] = taiHookFunctionImport(&tai_hook[i],
+      TAI_MAIN_MODULE,
+      TAI_ANY_LIBRARY,
+      0xA59454D3, // sceCtrlPeekBufferPositiveExt
+      tai_wrapper_7);
+
+  g_hooks[++i] = taiHookFunctionImport(&tai_hook[i],
+      TAI_MAIN_MODULE,
+      TAI_ANY_LIBRARY,
+      0x860BF292, // sceCtrlPeekBufferPositiveExt2
+      tai_wrapper_8);
+
+  g_hooks[++i] = taiHookFunctionImport(&tai_hook[i],
+      TAI_MAIN_MODULE,
+      TAI_ANY_LIBRARY,
+       0xA7178860, // sceCtrlReadBufferPositiveExt2
+      tai_wrapper_9);
 
   return SCE_KERNEL_START_SUCCESS;
 }

@@ -20,7 +20,7 @@ void draw_sticks_at(SceCtrlData pad, int x, int y) {
 }
 
 void draw_pad_at(SceCtrlData pad, int x, int y) {
-    int r = WIDTH - WIDTH / 3;
+    int r = WIDTH - WIDTH / 3 - 30;
     int l = WIDTH / 3;
 
     int ids[] = {
@@ -29,9 +29,9 @@ void draw_pad_at(SceCtrlData pad, int x, int y) {
         SCE_CTRL_L1, SCE_CTRL_R1, SCE_CTRL_SELECT, SCE_CTRL_START,
     };
     char *chars[] = {
-        "x", "o", "t", "s",
-        "D", "R", "U", "L",
-        "L", "R", "S", "S",
+        "╳", "◯", "△", "□",
+        "▼", "▶", "▲", "◀",
+        "L◤", "◥R", "S", "S",
     };
     int pos[][2] = {
         {r, 130}, {r+30, 100}, {r, 70}, {r-30, 100},
@@ -47,15 +47,10 @@ void draw_pad_at(SceCtrlData pad, int x, int y) {
         vita2d_pgf_draw_text(gui_font, pos[i][0]+x, pos[i][1]+y, color, 1.0f, chars[i]);
     }
 
-    char rt[256], lt[256];
-    sprintf(rt, "%d", pad.rt);
-    sprintf(lt, "%d", pad.lt);
-
-    vita2d_pgf_draw_text(gui_font, l+x, 40 - 30 + y, active_color, 1.0f, lt);
-    vita2d_pgf_draw_text(gui_font, r+x, 40 - 30 + y, active_color, 1.0f, rt);
-
-    vita2d_pgf_draw_text(gui_font, l+x, 40+y, pad.lt > 0 ? active_color : inactive_color, 1.0f, "L");
-    vita2d_pgf_draw_text(gui_font, r+x, 40+y, pad.rt > 0 ? active_color : inactive_color, 1.0f, "R");
+    int rt_percent = (float) pad.rt / 255;
+    int lt_percent = (float) pad.lt / 255;
+    vita2d_draw_rectangle(l+x + 40, y + 40 - 20, 20, 2 + 15 * lt_percent, pad.lt > remap_config.triggers_deadzone ? active_color : inactive_color);
+    vita2d_draw_rectangle(r+x - 30, y + 40 - 20, 20, 2 + 15 * rt_percent, pad.rt > remap_config.triggers_deadzone ? active_color : inactive_color);
 }
 
 void draw_touch_at(SceTouchData touch, int x, int y) {
@@ -80,7 +75,7 @@ void draw_touch_at(SceTouchData touch, int x, int y) {
 
 void ui_test_remap_draw() {
     SceCtrlData pad;
-    sceCtrlPeekBufferPositiveExt2( sceKernelGetModelForCDialog() == SCE_KERNEL_MODEL_VITATV ? 1 : 0, &pad, 1);
+    sceCtrlPeekBufferPositiveExt2(sceKernelGetModelForCDialog() == SCE_KERNEL_MODEL_VITATV ? 1 : 0, &pad, 1);
 
     SceTouchData front;
     sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);

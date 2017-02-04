@@ -109,15 +109,26 @@ int ui_new_action_menu(action_list_t *actions) {
     char names[ACTION_VARIANTS_SIZE][TRIGGER_NAME_SIZE];
     for (int i = 0; i < ACTION_VARIANTS_SIZE; i++) {
         int variant = action_variants[i];
+        action_t action = {
+            .type = -1,
+            .value = variant,
+        };
 
         if (variant <= TRIGGERS_LAST_TRANSIENT) {
-            remap_config_trigger_title(variant, names[i]);
+            action.type = ACTION_BUTTON;
         } else if (variant == FRONT_TOUCHSCREEN) {
-            strcpy(names[i], "[  ]");
+            action.type = ACTION_FRONTTOUCHSCREEN;
         } else if (variant == BACK_TOUCHSCREEN) {
-            strcpy(names[i], "⊂⊃");
+            action.type = ACTION_BACKTOUCHSCREEN;
+        } else if (variant == RIGHT_TRIGGER || variant == LEFT_TRIGGER) {
+            action.type = ACTION_TRIGGER;
+        } else if (RS_UP <= variant <= RS_RIGHT) {
+            action.type = ACTION_RS;
+        } else if (LS_UP <= variant <= LS_RIGHT) {
+            action.type = ACTION_LS;
         }
 
+        remap_config_action_title(action, names[i]);
         menu[idx++] = (struct menu_entry) { .name = names[i], .id = action_variants[i], };
     }
 

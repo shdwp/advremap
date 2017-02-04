@@ -11,8 +11,6 @@ int TRIGGERS[] =  {
     CTRL_RIGHT,
     CTRL_DOWN,
     CTRL_LEFT,
-    CTRL_LTRIGGER,
-    CTRL_RTRIGGER,
     CTRL_L1,
     CTRL_R1,
     CTRL_TRIANGLE,
@@ -401,7 +399,6 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
             for (int n = 0; n < array.size; n++) {
                 action_t action = array.list[n];
                 int overflow = 0;
-
                 switch (action.type) {
                     case ACTION_BUTTON:
                         mut_pad->buttons |= action.value;
@@ -419,8 +416,14 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
                         break;
                     case ACTION_TRIGGER:
                         switch (action.value) {
-                          case RIGHT_TRIGGER: mut_pad->rt = 255; break;
-                          case LEFT_TRIGGER: mut_pad->lt = 255; break;
+                          case RIGHT_TRIGGER:
+                            mut_pad->rt = 255;
+                            mut_pad->buttons |= SCE_CTRL_RTRIGGER;
+                            break;
+                          case LEFT_TRIGGER:
+                            mut_pad->lt = 255;
+                            mut_pad->buttons |= SCE_CTRL_LTRIGGER;
+                            break;
                         }
                         break;
                 }
@@ -452,15 +455,15 @@ void remap_config_trigger_title(int id, char buf[TRIGGER_NAME_SIZE]) {
         case TOUCHSCREEN_NE: trigger_name = "⊂⊃ NE"; break;
         case TOUCHSCREEN_SW: trigger_name = "⊂⊃ SW"; break;
         case TOUCHSCREEN_SE: trigger_name = "⊂⊃ SE"; break;
-        case RS_UP: trigger_name = "RS▲"; break;
-        case RS_DOWN: trigger_name = "RS▼"; break;
-        case RS_LEFT: trigger_name = "RS◀"; break;
-        case RS_RIGHT: trigger_name = "RS▶"; break;
+        case RS_UP: trigger_name = "Ⓡ▲"; break;
+        case RS_DOWN: trigger_name = "Ⓡ▼"; break;
+        case RS_LEFT: trigger_name = "◀Ⓡ"; break;
+        case RS_RIGHT: trigger_name = "Ⓡ▶"; break;
 
-        case LS_UP: trigger_name = "LS▲"; break;
-        case LS_DOWN: trigger_name = "LS▼"; break;
-        case LS_LEFT: trigger_name = "LS◀"; break;
-        case LS_RIGHT: trigger_name = "LS▶"; break;
+        case LS_UP: trigger_name = "Ⓛ▲"; break;
+        case LS_DOWN: trigger_name = "Ⓛ▼"; break;
+        case LS_LEFT: trigger_name = "◀Ⓛ"; break;
+        case LS_RIGHT: trigger_name = "Ⓛ▶"; break;
 
         default: trigger_name = "UNKNOWN"; break;
     }
@@ -475,16 +478,16 @@ bool remap_config_action_title(action_t action, char name[256]) {
         remap_config_trigger_title(action.value, name);
         return true;
       case ACTION_FRONTTOUCHSCREEN:
-        strcpy(name, "[  ]");
+        strcpy(name, "[    ]");
         return true;
       case ACTION_BACKTOUCHSCREEN:
         strcpy(name, "⊂⊃");
         return true;
       case ACTION_RS:
-        strcpy(name, "RS");
+        strcpy(name, "Ⓡ");
         return true;
       case ACTION_LS:
-        strcpy(name, "LS");
+        strcpy(name, "Ⓛ");
         return true;
       default:
         return false;
