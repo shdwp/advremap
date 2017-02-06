@@ -19,22 +19,23 @@ int config_mem_load(void *ptr, remap_config_t *result) {
     }
 
     // read deadzones
-    VOID_FREAD_INTO(int, result->rs_deadzone, ptr);
-    VOID_FREAD_INTO(int, result->ls_deadzone, ptr);
-    VOID_FREAD_INTO(int, result->back_touch_deadzone_vertical, ptr);
-    VOID_FREAD_INTO(int, result->back_touch_deadzone_horizontal, ptr);
-    VOID_FREAD_INTO(int, result->front_touch_deadzone_vertical, ptr);
-    VOID_FREAD_INTO(int, result->front_touch_deadzone_horizontal, ptr);
-    VOID_FREAD_INTO(int, result->triggers_deadzone, ptr);
+    VOID_FREAD_INTO(unsigned char, result->rs_deadzone, ptr);
+    VOID_FREAD_INTO(unsigned char, result->ls_deadzone, ptr);
+    VOID_FREAD_INTO(short, result->back_touch_deadzone_vertical, ptr);
+    VOID_FREAD_INTO(short, result->back_touch_deadzone_horizontal, ptr);
+    VOID_FREAD_INTO(short, result->front_touch_deadzone_vertical, ptr);
+    VOID_FREAD_INTO(short, result->front_touch_deadzone_horizontal, ptr);
+    VOID_FREAD_INTO(unsigned char, result->triggers_deadzone, ptr);
+    VOID_FREAD_INTO(bool, result->disable_display, ptr);
 
-    VOID_FREAD_INTO(int, result->size, ptr);
+    VOID_FREAD_INTO(unsigned char, result->size, ptr);
     result->triggers = malloc(sizeof(trigger_t) * result->size);
     VOID_FREAD(trigger_t, result->triggers, sizeof(trigger_t) * result->size, ptr);
 
     // read actions
     result->actions = malloc(sizeof(action_list_t) * result->size);
     for (int i = 0; i < result->size; i++) {
-        VOID_FREAD_INTO(int, result->actions[i].size, ptr);
+        VOID_FREAD_INTO(unsigned char, result->actions[i].size, ptr);
         result->actions[i].list = malloc(sizeof(action_t) * result->actions[i].size);
 
         VOID_FREAD(action_t, result->actions[i].list, sizeof(action_t) * result->actions[i].size, ptr);
@@ -73,6 +74,7 @@ int config_load(char *path, remap_config_t *result) {
     FREAD_INTO(result->front_touch_deadzone_vertical, file);
     FREAD_INTO(result->front_touch_deadzone_horizontal, file);
     FREAD_INTO(result->triggers_deadzone, file);
+    FREAD_INTO(result->disable_display, file);
 
     // read triggers
     FREAD_INTO(result->size, file);
@@ -103,6 +105,7 @@ int config_save(char *path, remap_config_t config) {
     FWRITE_FROM(config.front_touch_deadzone_vertical, file);
     FWRITE_FROM(config.front_touch_deadzone_horizontal, file);
     FWRITE_FROM(config.triggers_deadzone, file);
+    FWRITE_FROM(config.disable_display, file);
 
     FWRITE_FROM(config.size, file);
     fwrite(config.triggers, sizeof(trigger_t), config.size, file);
@@ -191,14 +194,7 @@ int config_taihen_append(application_t app) {
 }
 
 int config_default(remap_config_t *config) {
-    config->rs_deadzone = 0;
-    config->ls_deadzone = 0;
-    config->back_touch_deadzone_vertical = 0;
-    config->back_touch_deadzone_horizontal = 0;
-    config->front_touch_deadzone_vertical = 0;
-    config->front_touch_deadzone_horizontal = 0;
-    config->size = 0;
-
+    memset(config, 0, sizeof(remap_config_t));
     return 0;
 }
 

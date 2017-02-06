@@ -180,11 +180,21 @@ void draw_menu(struct menu_entry menu[], int total_elements, struct menu_geom ge
     if (menu[i].separator) {
       int border = strlen(menu[i].name) ? 7 : 0;
       int height = strlen(menu[i].name) ? text_height : geom.el / 2;
+      /*
       vita2d_draw_line(
           el_x + text_width + border,
           el_y + height,
           el_x + geom.width - 10 * 2,
           el_y + height,
+          0xffaaaaaa
+          );
+          */
+
+      vita2d_draw_rectangle(
+          el_x + text_width + border,
+          el_y + height,
+          geom.width - 10 * 2 - text_width - border,
+          1,
           0xffaaaaaa
           );
     }

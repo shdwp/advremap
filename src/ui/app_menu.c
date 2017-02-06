@@ -356,16 +356,11 @@ int ui_app_menu(application_t app) {
         menu[idx++] = (struct menu_entry) { .name = "Test remap", .id = APP_MENU_TEST_REMAP };
 
         menu[idx++] = (struct menu_entry) { .name = "Configure deadzones", .id = APP_MENU_DEADZONES };
-        menu[idx++] = (struct menu_entry) { .name = "Compat. options", .separator = true, .id = APP_MENU_COMPAT };
+        menu[idx++] = (struct menu_entry) { .name = "Compat. options", .id = APP_MENU_COMPAT };
 
-        // there's a memory corruption somewhere
-        // it either fiddle with GPU shared mem or memory used by vita2dlib
-        // if I uncomment those lines GPU will crash on second attempt to call this method
-        // some say he's still searching for the solution
-
-        //char actions_str[256];
-        //sprintf(actions_str, "Remapped buttons: %d", config.size);
-        //menu[idx++] = (struct menu_entry) { .name = "Remapped buttons", .disabled = true, .separator = true };
+        char actions_str[256];
+        sprintf(actions_str, "Remapped buttons: %d", config.size);
+        menu[idx++] = (struct menu_entry) { .name = actions_str, .disabled = true, .separator = true };
 
         char name[config.size][1024];
         for (int i = 0; i < config.size; i++) {

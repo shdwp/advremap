@@ -75,7 +75,7 @@ typedef struct {
 } action_t;
 
 typedef struct {
-    char size;
+    unsigned char size;
     char index;
     action_t *list;
 } action_list_t;
