@@ -2,6 +2,11 @@
 
 #include "../guilib/lib.h"
 
+#define IS_CTRL_EXTENDED true
+#define TRIGGER_CHECK_STICK_DEADZONE 70
+#define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
+#define EXTENDED_BUTTON_FIX(extended, value) if (!extended && *value == SCE_CTRL_L1) { *value = SCE_CTRL_LTRIGGER; } else if (!extended && *value == SCE_CTRL_R1) { *value = SCE_CTRL_RTRIGGER; }
+
 int TRIGGERS[] =  {
     CTRL_SELECT,
     CTRL_L3,
@@ -88,7 +93,6 @@ action_t make_trigger_action(int identifier) {
 }
 
 // check
-#define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 static int check_touch(SceTouchData scr, int lx, int ly, int rx, int ry) {
   for (int i = 0; i < scr.reportNum; i++) {
     int x = lerp(scr.report[i].x, 1919, WIDTH);
@@ -114,8 +118,6 @@ int trigger_check_touch(trigger_t trigger, SceTouchData data) {
 
     return -1;
 }
-
-#define TRIGGER_CHECK_STICK_DEADZONE 70
 
 bool trigger_check_stick(trigger_t trigger, SceCtrlData data) {
     int deadzone = TRIGGER_CHECK_STICK_DEADZONE;
@@ -143,7 +145,8 @@ bool trigger_check_stick(trigger_t trigger, SceCtrlData data) {
 }
 
 // cancel
-void cancel_button(int identifier, SceCtrlData *mut_pad) {
+void cancel_button(int identifier, bool extended, SceCtrlData *mut_pad) {
+    EXTENDED_BUTTON_FIX(extended, &identifier);
     mut_pad->buttons ^= identifier;
 }
 
@@ -188,9 +191,11 @@ void cancel_trigger(trigger_t trigger, SceCtrlData *mut_pad) {
   switch (trigger) {
     case LEFT_TRIGGER:
       mut_pad->lt = 0;
+      cancel_button(SCE_CTRL_LTRIGGER, true, mut_pad);
       break;
     case RIGHT_TRIGGER:
       mut_pad->rt = 0;
+      cancel_button(SCE_CTRL_RTRIGGER, true, mut_pad);
       break;
   }
 }
@@ -211,10 +216,11 @@ void spawn_touch(int x, int y, SceTouchData *mut_data) {
     }
 }
 
-int remap_test_trigger(trigger_t trigger, SceCtrlData pad, SceTouchData front, SceTouchData back) {
+int remap_test_trigger(trigger_t trigger, bool extended, SceCtrlData pad, SceTouchData front, SceTouchData back) {
     int type = trigger_type(trigger);
     switch (type) {
         case TRIGGER_TYPE_BUTTON:
+            EXTENDED_BUTTON_FIX(extended, &trigger);
             return pad.buttons & trigger ? 0 : -1;
         case TRIGGER_TYPE_TOUCH:
             return trigger_check_touch(trigger, back);
@@ -276,7 +282,7 @@ int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData fro
     int actions_i = 0;
 
     for (int i = 0; i < TRIGGERS_TRANSIENT_COUNT; i++) {
-        if (remap_test_trigger(TRIGGERS[i], pad, front, back) >= 0) {
+        if (remap_test_trigger(TRIGGERS[i], IS_CTRL_EXTENDED, pad, front, back) >= 0) {
             int type = trigger_type(TRIGGERS[i]);
 
             switch (type) {
@@ -323,7 +329,7 @@ int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData fro
 
 int remap_read_trigger(trigger_t *trigger, SceCtrlData pad, SceTouchData front, SceTouchData back) {
     for (int i = 0; i < TRIGGERS_COUNT; i++) {
-        if (remap_test_trigger(TRIGGERS[i], pad, front, back) >= 0) {
+        if (remap_test_trigger(TRIGGERS[i], IS_CTRL_EXTENDED, pad, front, back) >= 0) {
             *trigger = TRIGGERS[i];
             return 0;
         }
@@ -353,7 +359,7 @@ void stick_values_append(unsigned char *x, unsigned char *y, int dx, int dy) {
 }
 
 // remap
-void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back) {
+void remap(remap_config_t config, bool extended, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back) {
     remap_deadzone_ignore(config, mut_pad, mut_front, mut_back);
 
     SceCtrlData pad;
@@ -369,7 +375,7 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
         trigger_t trigger = config.triggers[i];
 
         int type = trigger_type(trigger);
-        int trigger_test = remap_test_trigger(trigger, pad, front, back);
+        int trigger_test = remap_test_trigger(trigger, extended, pad, front, back);
         if (trigger_test >= 0) {
             bool should_prevent = true;
             for (int n = 0; n < spawned_buttons_i; n++) {
@@ -381,7 +387,7 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
             if (should_prevent) {
                 switch (type) {
                     case TRIGGER_TYPE_BUTTON:
-                        cancel_button((int) trigger, mut_pad);
+                        cancel_button((int) trigger, extended, mut_pad);
                         break;
                     case TRIGGER_TYPE_TOUCH:
                         cancel_touch(trigger_test, mut_back);
@@ -401,6 +407,7 @@ void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front,
                 int overflow = 0;
                 switch (action.type) {
                     case ACTION_BUTTON:
+                        EXTENDED_BUTTON_FIX(extended, &action.value);
                         mut_pad->buttons |= action.value;
                         spawned_buttons[spawned_buttons_i++] = action.value;
                         break;

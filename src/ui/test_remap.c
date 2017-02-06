@@ -82,7 +82,7 @@ void ui_test_remap_draw() {
     SceTouchData back;
     sceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 
-    remap(remap_config, &pad, &front, &back);
+    remap(remap_config, true, &pad, &front, &back);
 
     draw_touch_at(front, 300, 70);
     draw_touch_at(back, 300, 180);

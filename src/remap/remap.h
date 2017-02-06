@@ -76,7 +76,7 @@ typedef struct {
 
 typedef struct {
     unsigned char size;
-    char index;
+    signed char index;
     action_t *list;
 } action_list_t;
 
@@ -105,7 +105,7 @@ action_t make_trigger_action(int identifier);
 //
 
 void remap_deadzone_ignore(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back);
-void remap(remap_config_t config, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back);
+void remap(remap_config_t config, bool extended, SceCtrlData *mut_pad, SceTouchData *mut_front, SceTouchData *mut_back);
 
 int remap_read_trigger(trigger_t *trigger, SceCtrlData pad, SceTouchData front, SceTouchData back);
 int remap_read_actions(action_list_t *actions, SceCtrlData pad, SceTouchData front, SceTouchData back);

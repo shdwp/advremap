@@ -136,7 +136,7 @@ int ui_compatibility_menu_loop(int id, void *context) {
     return GUI_CONTINUE;
 }
 
-int ui_compatibility_menu() {
+int ui_compatibility_menu(application_t *app) {
     ui_compatibility_menu_loop_setup = true;
     struct menu_entry menu[16];
     int idx = 0;
@@ -146,7 +146,7 @@ int ui_compatibility_menu() {
     menu[idx++] = (struct menu_entry) { .name = "", .subname = "If the game crash on startup try ", .disabled = true };
     menu[idx++] = (struct menu_entry) { .name = "", .subname = "enabling this option", .disabled = true };
 
-    struct menu_geom geom = make_geom_centered(400, 200);
+    struct menu_geom geom = make_geom_centered(500, 200);
     return display_menu(
             menu,
             idx,
@@ -245,7 +245,7 @@ int ui_app_menu_loop(int cursor_id, void *context) {
                 ui_deadzone_menu();
                 break;
             case APP_MENU_COMPAT:
-                ui_compatibility_menu();
+                ui_compatibility_menu((application_t *) context);
                 break;
             default:
                 ui_adv_actions_menu(&config.actions[cursor_id]);
@@ -352,7 +352,7 @@ int ui_app_menu(application_t app) {
         struct menu_entry menu[24 + config.size];
         int idx = 0;
 
-        menu[idx++] = (struct menu_entry) { .name = "", .subname = path, .disabled = true, .color = 0xffaa00aa };
+        menu[idx++] = (struct menu_entry) { .name = "", .subname = app.name, .disabled = true, .color = 0xffaa00aa };
         menu[idx++] = (struct menu_entry) { .name = "Test remap", .id = APP_MENU_TEST_REMAP };
 
         menu[idx++] = (struct menu_entry) { .name = "Configure deadzones", .id = APP_MENU_DEADZONES };

@@ -122,9 +122,9 @@ int ui_new_action_menu(action_list_t *actions) {
             action.type = ACTION_BACKTOUCHSCREEN;
         } else if (variant == RIGHT_TRIGGER || variant == LEFT_TRIGGER) {
             action.type = ACTION_TRIGGER;
-        } else if (RS_UP <= variant <= RS_RIGHT) {
+        } else if (RS_UP <= variant && variant <= RS_RIGHT) {
             action.type = ACTION_RS;
-        } else if (LS_UP <= variant <= LS_RIGHT) {
+        } else if (LS_UP <= variant && variant <= LS_RIGHT) {
             action.type = ACTION_LS;
         }
 

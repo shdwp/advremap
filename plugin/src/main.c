@@ -7,13 +7,15 @@
 #include <psp2/sysmodule.h>
 #include <psp2/rtc.h>
 
+#include <stdbool.h>
 #include "../src/remap/remap.h"
 #include "../src/remap/config.h"
 
 #include "blit.h"
 
 // meta
-#define CtrlBufferWrapper(n) static int tai_wrapper_##n(int p, SceCtrlData *ctrl, int c) { return ctrl_buffer_wrapper(p, tai_hook[n], ctrl, c); }
+#define CtrlBufferWrapper(n) static int tai_wrapper_##n(int p, SceCtrlData *ctrl, int c) { return ctrl_buffer_wrapper(p, tai_hook[n], ctrl, c, 0); }
+#define CtrlBufferExtendedWrapper(n) static int tai_wrapper_##n(int p, SceCtrlData *ctrl, int c) { return ctrl_buffer_wrapper(p, tai_hook[n], ctrl, c, 1); }
 #define CtrlTouchWrapper(n) static int tai_wrapper_##n(int p, SceTouchData *data, int c) { return ctrl_touch_wrapper(p, tai_hook[n], data, c); }
 #define CtrlTouchRegionWrapper(n) static int tai_wrapper_##n(int p, SceTouchData *data, int c, int r) { return ctrl_touch_region_wrapper(p, tai_hook[n], data, c, r); }
 
@@ -35,15 +37,15 @@ CtrlTouchRegionWrapper(7)
 
 static int tai_wrapper_8(const SceDisplayFrameBuf *pParam, int sync) { return framebuf_set(tai_hook[6], pParam, sync); }
 
-CtrlBufferWrapper(9)
-CtrlBufferWrapper(10)
-CtrlBufferWrapper(11)
+CtrlBufferExtendedWrapper(9)
+CtrlBufferExtendedWrapper(10)
+CtrlBufferExtendedWrapper(11)
 
 // remap
 static int display_notice_iterations;
 static remap_config_t remap_config;
 
-int ctrl_buffer_wrapper(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count) {
+int ctrl_buffer_wrapper(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count, int extended) {
   if (ref_hook == 0) {
     return 1;
   } else {
@@ -53,7 +55,7 @@ int ctrl_buffer_wrapper(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, in
     sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
     sceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 
-    remap(remap_config, ctrl, &front, &back);
+    remap(remap_config, (bool) extended, ctrl, &front, &back);
 
     return ret;
   }
@@ -72,12 +74,12 @@ int ctrl_touch_wrapper(int port, tai_hook_ref_t ref_hook, SceTouchData *data, in
       SceTouchData back;
       sceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 
-      remap(remap_config, &ctrl, data, &back);
+      remap(remap_config, false, &ctrl, data, &back);
     } else {
       SceTouchData front;
       sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
 
-      remap(remap_config, &ctrl, &front, data);
+      remap(remap_config, false, &ctrl, &front, data);
     }
 
     return ret;
@@ -97,12 +99,12 @@ int ctrl_touch_region_wrapper(int port, tai_hook_ref_t ref_hook, SceTouchData *d
       SceTouchData back;
       sceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 
-      remap(remap_config, &ctrl, data, &back);
+      remap(remap_config, false, &ctrl, data, &back);
     } else {
       SceTouchData front;
       sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
 
-      remap(remap_config, &ctrl, &front, data);
+      remap(remap_config, false, &ctrl, &front, data);
     }
 
     return ret;
