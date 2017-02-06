@@ -28,6 +28,9 @@ int TRIGGERS[] =  {
     LS_LEFT,
     LS_RIGHT,
 
+    RIGHT_TRIGGER,
+    LEFT_TRIGGER,
+
     RS_ANY,
     LS_ANY,
 
@@ -35,9 +38,6 @@ int TRIGGERS[] =  {
     TOUCHSCREEN_NE,
     TOUCHSCREEN_SW,
     TOUCHSCREEN_SE,
-
-    RIGHT_TRIGGER,
-    LEFT_TRIGGER,
 };
 
 // trigger
@@ -444,17 +444,22 @@ void remap_config_trigger_title(int id, char buf[TRIGGER_NAME_SIZE]) {
         case CTRL_LEFT: trigger_name = "◀"; break;
         case CTRL_L1: trigger_name = "L◤"; break;
         case CTRL_R1: trigger_name = "◥R"; break;
-        case RIGHT_TRIGGER: trigger_name = "RT"; break;
-        case LEFT_TRIGGER: trigger_name = "LT"; break;
         case CTRL_TRIANGLE: trigger_name = "△"; break;
         case CTRL_CIRCLE: trigger_name = "◯"; break;
         case CTRL_CROSS: trigger_name = "╳"; break;
         case CTRL_SQUARE: trigger_name = "□"; break;
 
+        case RIGHT_TRIGGER: trigger_name = "RT"; break;
+        case LEFT_TRIGGER: trigger_name = "LT"; break;
+
         case TOUCHSCREEN_NW: trigger_name = "⊂⊃ NW"; break;
         case TOUCHSCREEN_NE: trigger_name = "⊂⊃ NE"; break;
         case TOUCHSCREEN_SW: trigger_name = "⊂⊃ SW"; break;
         case TOUCHSCREEN_SE: trigger_name = "⊂⊃ SE"; break;
+
+        case CTRL_L3: trigger_name = "Ⓛ3"; break;
+        case CTRL_R3: trigger_name = "Ⓡ3"; break;
+
         case RS_UP: trigger_name = "Ⓡ▲"; break;
         case RS_DOWN: trigger_name = "Ⓡ▼"; break;
         case RS_LEFT: trigger_name = "◀Ⓡ"; break;
@@ -465,7 +470,7 @@ void remap_config_trigger_title(int id, char buf[TRIGGER_NAME_SIZE]) {
         case LS_LEFT: trigger_name = "◀Ⓛ"; break;
         case LS_RIGHT: trigger_name = "Ⓛ▶"; break;
 
-        default: trigger_name = "UNKNOWN"; break;
+        default: sprintf(buf, "UNKNOWN 0x%x", id); return; 
     }
 
     strcpy(buf, trigger_name);
