@@ -71,22 +71,25 @@ typedef enum {
 typedef struct {
     action_type_t type;
     int value;
-    int x, y;
+    short x, y;
 } action_t;
 
 typedef struct {
-    int size;
-    int index;
+    char size;
+    char index;
     action_t *list;
 } action_list_t;
 
 typedef struct {
-    int rs_deadzone, ls_deadzone;
-    int back_touch_deadzone_vertical, back_touch_deadzone_horizontal;
-    int front_touch_deadzone_vertical, front_touch_deadzone_horizontal;
-    int triggers_deadzone;
+    short back_touch_deadzone_vertical, back_touch_deadzone_horizontal;
+    short front_touch_deadzone_vertical, front_touch_deadzone_horizontal;
 
-    int size;
+    unsigned char rs_deadzone, ls_deadzone;
+    unsigned char triggers_deadzone;
+
+    bool disable_display;
+
+    unsigned char size;
     trigger_t *triggers;
     action_list_t *actions;
 } remap_config_t;

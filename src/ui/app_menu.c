@@ -3,6 +3,7 @@
 enum {
     APP_MENU_TEST_REMAP = 128,
     APP_MENU_DEADZONES,
+    APP_MENU_COMPAT,
 };
 
 #define TRIGGER_MENU_OK 2
@@ -110,7 +111,56 @@ int ui_deadzone_menu() {
             );
 }
 
-// action
+// compat menu
+
+static bool ui_compatibility_menu_loop_setup = true;
+
+int ui_compatibility_menu_loop(int id, void *context) {
+    bool was_changed = false;
+
+    if (was_button_pressed(SCE_CTRL_CROSS)) {
+        switch (id) {
+            case 1: config.disable_display = !config.disable_display; break;
+        }
+
+        was_changed = true;
+    }
+
+    if (ui_compatibility_menu_loop_setup || was_changed) {
+        struct menu_entry *menu = context;
+        strcpy(menu[0].subname, config.disable_display ? "true" : "false");
+
+        ui_compatibility_menu_loop_setup = false;
+    }
+
+    return GUI_CONTINUE;
+}
+
+int ui_compatibility_menu() {
+    ui_compatibility_menu_loop_setup = true;
+    struct menu_entry menu[16];
+    int idx = 0;
+
+    char subnames[1][128];
+    menu[idx++] = (struct menu_entry) { .name = "Disable startup notification", .subname = subnames[0], .id = 1 };
+    menu[idx++] = (struct menu_entry) { .name = "", .subname = "If the game crash on startup try ", .disabled = true };
+    menu[idx++] = (struct menu_entry) { .name = "", .subname = "enabling this option", .disabled = true };
+
+    struct menu_geom geom = make_geom_centered(400, 200);
+    return display_menu(
+            menu,
+            idx,
+            &geom,
+            &ui_compatibility_menu_loop,
+            NULL,
+            NULL,
+            DEFAULT_GUIDE,
+            (void *) menu
+            );
+}
+
+// actions
+
 int ui_action_menu_loop(int cursor_id, void *context) {
     SceRtcTick current_tick;
     sceRtcGetCurrentTick(&current_tick);
@@ -193,6 +243,9 @@ int ui_app_menu_loop(int cursor_id, void *context) {
                 break;
             case APP_MENU_DEADZONES:
                 ui_deadzone_menu();
+                break;
+            case APP_MENU_COMPAT:
+                ui_compatibility_menu();
                 break;
             default:
                 ui_adv_actions_menu(&config.actions[cursor_id]);
@@ -296,16 +349,23 @@ int ui_app_menu(application_t app) {
     }
 
     do {
-        struct menu_entry menu[16 + config.size];
+        struct menu_entry menu[24 + config.size];
         int idx = 0;
 
         menu[idx++] = (struct menu_entry) { .name = "", .subname = path, .disabled = true, .color = 0xffaa00aa };
         menu[idx++] = (struct menu_entry) { .name = "Test remap", .id = APP_MENU_TEST_REMAP };
 
         menu[idx++] = (struct menu_entry) { .name = "Configure deadzones", .id = APP_MENU_DEADZONES };
-        char actions_str[256];
-        sprintf(actions_str, "Remapped buttons: %d", config.size);
-        menu[idx++] = (struct menu_entry) { .name = actions_str, .disabled = true, .separator = true };
+        menu[idx++] = (struct menu_entry) { .name = "Compat. options", .separator = true, .id = APP_MENU_COMPAT };
+
+        // there's a memory corruption somewhere
+        // it either fiddle with GPU shared mem or memory used by vita2dlib
+        // if I uncomment those lines GPU will crash on second attempt to call this method
+        // some say he's still searching for the solution
+
+        //char actions_str[256];
+        //sprintf(actions_str, "Remapped buttons: %d", config.size);
+        //menu[idx++] = (struct menu_entry) { .name = "Remapped buttons", .disabled = true, .separator = true };
 
         char name[config.size][1024];
         for (int i = 0; i < config.size; i++) {

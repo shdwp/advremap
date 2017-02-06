@@ -18,6 +18,7 @@
 #define CtrlTouchRegionWrapper(n) static int tai_wrapper_##n(int p, SceTouchData *data, int c, int r) { return ctrl_touch_region_wrapper(p, tai_hook[n], data, c, r); }
 
 #define HOOKS_COUNT 12
+#define DISPLAY_HOOK_IDX 8
 static SceUID g_hooks[HOOKS_COUNT];
 static tai_hook_ref_t tai_hook[HOOKS_COUNT];
 static char mem_config[CONFIG_MEM_MAX_SIZE] = "ADVREMAP_IM_A_LOUSY_PROGRAMMER";
@@ -154,6 +155,10 @@ int module_start(SceSize argc, const void *args) {
       0x860BF292, // sceCtrlPeekBufferPositiveExt2
       0xA7178860, // sceCtrlReadBufferPositiveExt2
   };
+
+  if (remap_config.disable_display) {
+    nids[DISPLAY_HOOK_IDX] = 0;
+  }
 
   for (int i = 0; i < HOOKS_COUNT; i++) {
     if (nids[i] == 0) {

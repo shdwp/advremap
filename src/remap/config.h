@@ -5,7 +5,7 @@
 #include "remap.h"
 #include "../applist/applist.h"
 
-#define CONFIG_VERSION 2
+#define CONFIG_VERSION 3
 #define CONFIG_APP_PATH_SIZE 256
 #define CONFIG_PLUGIN_PATH "app0:advremap.suprx"
 #define CONFIG_TAIHEN_PATH "ux0:tai/config.txt"
