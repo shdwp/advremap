@@ -223,4 +223,10 @@ void config_remove_remap(remap_config_t *config, int n) {
     config->actions = realloc(config->actions, sizeof(action_list_t) * config->size);
 }
 
+bool config_is_empty(remap_config_t config) {
+    remap_config_t empty_config;
+    config_default(&empty_config);
+    return memcmp(&config, &empty_config, sizeof(remap_config_t)) == 0;
+}
+
 #endif

@@ -27,6 +27,7 @@ int config_default(remap_config_t *config);
 
 int config_taihen_append(application_t app);
 
+bool config_is_empty(remap_config_t config);
 void config_append_remap(remap_config_t *config);
 void config_remove_remap(remap_config_t *config, int n);
 

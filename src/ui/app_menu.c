@@ -291,7 +291,7 @@ int ui_app_menu_loop(int cursor_id, void *context) {
 }
 
 int ui_app_menu_back(void *context) {
-    if (config.size > 0) {
+    if (!config_is_empty(config)) {
         application_t *app = (application_t *) context;
         char path[256], binary_path[CONFIG_APP_PATH_SIZE];
         config_path(*app, &path);
